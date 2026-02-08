@@ -1,0 +1,440 @@
+Collaborative Path Planning for Multiple Unmanned
+Aerial Vehicles to Avoid Sudden Threats
+Xia Chen, Miaoyan Zhao
+Automated institute
+Shenyang Aerospace University
+Shenyang 110136, China
+xiachen1108@163.com, 137660746@qq.com.
+Abstract—This paper concerns collaborative path planning transforming multi-stage decision problems into single-stage
+for multiple unmanned aerial vehicles to avoid sudden threats. optimization problems to reduce the difficulty of decision-
+Firstly,usingV-diagramandmissionassignmentmodeltoobtain
+makingproblems[7].However,itsalgorithmtakesalongtime
+multi-UAV path planning in a pre-established environment with
+[8]. The particle swarm optimization algorithm is a method
+obstacles. Then, after a sudden threat, the principle of cubic
+splinesecond-ordercontinuityandboundaryconditionsareused to simulate the bird group to find food. The algorithm is
+for local planning. After that, setting the total cost function to simple in calculation, good in robustness, strong in searching
+getthemostsuitablecandidatepath.Finally,usingtheprinciple ability and fast in convergence [9]. However, the algorithm is
+of crowding mechanism and setting the priority probability, the
+prone to premature convergence or stagnation [10]. Most of
+secondary security screening is performed to get the optimal
+methods use re-planning algorithms to avoid obstacles which
+candidate path. Simulation results show the effectiveness of the
+proposed method. can obtain a safe path but take a long time. Another common
+Index Terms—V-diagram, mission assignment model, cubic algorithm is the RRT algorithm, which is fast planning [11].
+spline, total cost function, secondary security screening However, the obtained path is steep and the smoothness is
+poor [12]. In this paper, using the V-diagram algorithm as
+I. INTRODUCTION the basis, and using the mission assignment model to make
+decisions on multiple unmanned aerial vehicles, so that paths
+With the rapid development of unmanned aerial vehicle
+canbegenerated.Then,inthecaseofsuddenthreats,multiple
+technology and the increasing complexity of the operational
+candidatepathsaregeneratedusingthepropertiesofthecubic
+environment, single unmanned aerial vehicle operations and
+spline second-order continuity and boundary conditions, and
+pathplanningwithoutconsideringsuddenthreatsarenolonger
+some adjustments are made as needed. After that, the total
+sufficient [1]. The assignment of multiple unmanned aerial
+cost function is set, it includes a security cost function, a
+vehicles can greatly improve the efficiency of operations and
+smoothness cost function, and a consistency cost function.
+reduce unnecessary waste of resources [2]. Therefore, the
+The candidate path corresponding to the minimum value is
+research about multi-UAV technology is becoming more and
+the selected path. The last one is that using the principle
+more important. Then, under the threat of sudden threats, the
+of crowding mechanism and setting the priority probability,
+research on the paths of unmanned aerial vehicles is the same
+the secondary security screening is performed to get the
+asabove,andhasreceivedtheattentionofexpertsandscholars
+optimal candidate path. The simulation results show that the
+athomeandabroad.Therefore,theplanningofthepathunder
+algorithm has a fast operation speed, good path smoothness
+the threat of multiple unmanned aerial vehicles is naturally a
+and practicability.
+hottopicofresearch.Now,thereislessliteratureandresearch
+The structure of this paper is as follows. Section II intro-
+onthisaspect.Itisdifficulttoadjustalargenumberofaircraft
+duces the global plan obtained using the V-diagram and the
+tracks and obstacle avoidance paths after a sudden threat. In
+mission assignment model obtained. In section III, Generate
+recent years, the research on multi-aircraft path planning has
+candidate paths in case of sudden threats. In section IV, the
+yielded some results [3].
+establishment of the total cost function and the establishment
+The results of this research can be divided into three
+of the secondary security screening model are proposed.
+categories,oneisheuristicalgorithm,theotherismathematical
+Section V gives simulation results. Section VI concludes this
+programming algorithm, and the last one is intelligent opti-
+paper.
+mization algorithm [4]. For example, the clustering algorithm
+has the advantages of strong fault tolerance, fast calculation II. COLLABORATIVEPATHPLANNINGMODELBASEDON
+speed and easy understanding [5]. However, the algorithm is TASKASSIGNMENTFORMULTIPLEUAVS
+computationallyintensiveandrequiresahighinitialvalue[6].
+A. Multiple unmanned aerial vehicles mission assignment
+The results obtained by this algorithm are often not optimal
+model
+solutions. The enumeration method is based on the idea of
+Theprincipleofaircombatistoprotectusandtoattackthe
+NationalNaturalScienceFoundationofChina(61074159) enemy to the greatest extent. Therefore, we need to consider
+978-1-7281-4094-0/19/$31.00 ©2019 IEEE 2196
+two basic factors, the loss of the enemy and our loss [13]. Where:η ,η andη istheweightcoefficient,P isthecon-
+1 2 3 y
+Therefore, a scheme corresponding to the maximum value of straintfunctionoftheunmannedaerialvehicleitself,including
+the ratio between the benefit and the loss is adopted as the the deflection angle limit, etc. P (i) is the safety constraint
+s
+optimum solution. Generally speaking, the value generated by function of the i-th track, P (i) is the time coordination
+t
+a path varies according to its target point. The reasonable constraint function of the i-th track.
+arrangement of tasks and options should be based on the
+combinationofpathandtaskassignmentwithminimumprob- ⎧
+abilityofdiscovery.Sincethecollaborativetaskassignmentis ⎪⎨0, D ij >L safe
+closely related tothe collaborative path, this paperassigns the P (i)= 1 , else (8)
+task as part of the objective function of the collaborative path
+s ⎪⎩D
+j ij =1,2,··· ,i−1,i+1,··· ,K
+plan. Get the formula as follows [13]:
+(cid:2)
+U B Where:D ij is the Euclidean distance between the i-th un-
+F =max((cid:2)j=1 j ) (1) mannedaerial vehicleandthe j-thunmanned aerialvehicleat
+K S
+i=1 i the same time, L safe is set to the safe distance.
+Amongthem,B isthevalueobtainedwhenattackingthej- (cid:22)
+j
+th target, S is the path cost of the i-th unmanned aerial P (i)=max( (T −T )),
+i t i j
+(9)
+vehicle, K is the number of unmanned aerial vehicles, and U
+j =1,2,··· ,i−1,i+1,··· ,K
+is the targets number.
+B j is calculated according to the following formula: Where:T ,T ,··· andT indicatethetimetakenfortheK-
+1 2 K
+B
+j
+=ρ
+j
+ν
+j
++γ
+j
+λ
+j
+−ρ
+j
+ν
+j
+·ΠK
+i=1
+(1−p
+ij
+)wij− frame unmanned aerial vehicles to reach the target point.
+(2)
+γ
+j
+λ
+j
+·ΠK
+i=1
+(1−p
+ij
+)wij
+B. Global Planning Based on V-diagram
+Where:p is the killing probability of the i-th unmanned
+ij
+aerial vehicle for the j-th target, ν is the value of the j-th Voronoi diagram generation methods mainly include divide
+j
+target, and λ represents the degree of threat to our target by andconquer,incrementalconstruction,indirectmethodandso
+j
+the j-th target. ρ and γ are weight values. When the i-th on. Among them, the indirect method is the most commonly
+j j
+unmanned aerial vehicle attacks the jth target, w is 1 and used in the Voronoi diagram generation method [14]. In this
+ij
+otherwise w is 0. paper, the indirect method is used to construct the Voronoi
+ij
+diagram. First threat sources are generated. Then, the growth
+S i =α i S d (i)+(1−α i )S t (i)+P i (3) points sharing the same side in the adjacent Voronoi polygons
+are connected to each other to obtain the obtained triangle
+Where:α istheweightcoefficient,S (i)isthevoyagecost
+i d (Delaunay triangle). Then, the vertical line of each side of
+ofthei-thtrack,S (i)isthethreatcostofthei-thtrackandP
+t i each triangle is made in the corresponding triangulation, thus
+is the constraint function of the i-th track.
+forming a Voronoi polygon with the vertices of each triangle
+(cid:10)N
+as the generation point. In short, Voronoi diagram consists of
+S (i)= l (t) (4)
+d i a set of continuous polygons consisting of vertical bisectors
+t=1 connecting the lines of two adjacent points.
+Where: N is the number of segments into which path i is
+divided, l (t) is the length of the t-th path segment of the i-th
+i
+path.
+(cid:10)N (cid:10)M (cid:10)Q
+S (i)= k (i)P (t) (5)
+t q qm
+t=1m=1q=1
+Where:M isthenumberofpointsonthet-thtracksegment
+of the i th track, Q is the number of threats, P (t) is the
+qm
+threat probability of the q-th threat to the m-th track point on
+thet-thtracksegmentofthei-thtrajectory,k (i)istheweight
+q
+coefficient of the q-th threat for the i-th trajectory.
+1
+P (t)= (cid:18) (6)
+qm (x −x )2+(y −y )2 Fig.1. V-diagramwithdelaunaytriangulation
+m q m q
+In this equation, (x ,y ) is the coordinate value of m
+m m Where:
+points, (x ,y ) is the coordinate value of the q-th threat.
+q q
+The dotted line indicates delaunay triangulation.
+P(i)=η P +η P (i)+η P (i) (7) The solid line indicates V-diagram.
+1 y 2 s 3 t
+2197
+III. CANDIDATEPATHGENERATION Therefore, after considering the cost function of the candidate
+path itself, it is necessary to combine the other environmental
+When unmanned aerial vehicles encounter a sudden threat,
+information for secondary security screening.
+the original path is no longer applicable. In order to avoid
+sudden threats and reduce the amount of calculation, this
+A. Security cost function
+paper adopts the method of local planning. A cluster of
+Safety is a primary consideration for path planning. Un-
+candidate paths is generated by using cubic spline second-
+manned aerial vehicles are threatened by sudden threats and
+order continuity and boundary conditions, and the obtained
+known obstacles. Therefore, the setting function R represents
+candidate paths are adjusted according to actual conditions to
+the relationship between the candidate path and the threat
+ensure that an effective optimal candidate path is obtained.
+beingreceived.BycalculatingtheEuclideandistancebetween
+y =a(x−x s )3+b(x−x s )2+c(x−x s )+y s (10) thesamplepointonthecandidatepathandthethreat,whenthe
+The range of x is x ∈ (x ,x ). Where: A(x ,y ) is the
+distanceisgreaterthanthethreatradius,R=0,orR=1.The
+s e s s
+obtained data is not discriminative, so the discrete Gaussian
+startingpointofthecandidatepath,O(x ,y )istheendpoint
+e e
+convolution is introduced to optimize the R function, and the
+of the candidate path. The parameters a, b and c in this paper
+formula is:
+are obtained by boundary conditions. The parameters in this
+paper are: ⎧ ⎪⎨c=0; F sa (i)=
+(cid:10)N
+√ 1 e−(k− 2σ i)2 R[k+i] (13)
+2πσ
+a= cΔx+2(ys −ym) (11) k=−N
+⎪⎩
+b= 3(ym −
+Δ
+y
+x
+s)
+3
+−2cΔx Inthisformula,F sa (i)isthesecuritycostfunctionofthei-
+Δx2 th candidate path, and the number of candidate paths is 2N+
+Where: Δx = x m − x s , x m is the central abscissa of 1.σ isthestandarddeviationofcollisionrisk,determiningthe
+the sudden threat. Different y m values will result in different effective range of collision detection
+candidate paths, so N different a values have N different
+candidate paths. B. Smoothness cost function
+In this paper, the function formulas of any two candidate Smoothness is also an important factor in path planning.
+pathsarelinkedtogether.Itisfoundthattheobtainedintersec- Poor path smoothness will affect the flight efficiency of the
+tion points are not related to y m , only related to Δx, x s , y s , UAV, and more serious accidents will occur. Smoothness
+so it is proved that all candidate paths pass the point A and depends on the curvature of the path. Using this property, the
+the another point. The another point is treated as a point O. smoothness cost function formula is:
+(cid:30)
+However, when the sudden threat and the starting point
+of the candidate path have an angle α with the x-axis, the F sm (i)= |k i (x)| dx (14)
+candidate path is adjusted, and the adjustment formula is:
+(cid:19) Where: k (x) is the curvature of the i-th candidate path at
+i
+x 0 =(x−x s )cosα−(y−y s )sinα+x s thexposition,andtheupperandlowerlinesoftheintegralare
+(12)
+y =(x−x )sinα+(y−y )cosα+y thestartandendpointsofthecandidatepath.Thesmoothness
+0 s s s
+cost function can indicate the degree of bending of the path
+to a certain extent, and the more curved the path is more
+dangerous.
+C. Consistency cost function
+Both the security cost function and the smoothness cost
+function consider only the characteristics of the candidate
+path itself, and do not consider the relationship between the
+candidate path and the original path. The consistency cost
+function takes this problem into consideration. Using the
+Euclidean distance between the candidate path sample points
+and the corresponding original path sample points and the
+difference between the corresponding angles, the consistency
+cost function is obtained as follows:
+Fig.2. Candidatepathadjustmentdiagram (cid:30) (cid:22)
+λ xs
+F (i)= 1 (x −x )2+(y −y )2dx+λ Δθ
+co x −x 0 y 0 y 2 i
+IV. CHOICEOFCANDIDATEPATHS s m x
+(cid:2)
+m
+(15)
+The security cost function, the smoothness cost function, Where: Δθ = 1 T (cid:7)θ (t)−θ (t)(cid:7), T is the number
+i T t=1 1 2
+and the coherency cost function are considered to obtain a of sample points , θ (t) is the deflection angle of the original
+1
+suitablecandidatepath.However,duetothemultiplethreatsin pathandthex-axis,θ (t)isthedeflectionangleofthetangent
+2
+thispaper,theobtainedcandidatepathsmayappearcross-over. and the x-axis on the candidate path, x and y are the
+y y
+2198
+Second, consider the relationship between the candidate
+path and the original path. Simultaneous formula:
+S (r)=y −p , r ⊆(1,2), j ⊆(1,2,3,··· ,W) (20)
+o r j
+Where: p(j) is a path function obtained by smoothing the
+cubic spline based on the path generated by the V-diagram.
+W is the number of paths generated by M unmanned aerial
+vehicles obtained through the mission assignment model.
+(cid:17)
+1 S (r) exists zero
+F (r)= o (21)
+so 0 S (r) does not exist zero
+Fig.3. Schematicdiagramofdeflectionanglesθ1(t)andθ2(t) o
+After that, the result of the logical OR operation of the
+correspondingpointontheoriginalpath, λ 1 andλ 2 areweight corresponding candidate path in the F ss function and the
+coefficients. F so function is obtained.
+In Fig.3, the black line is one of the candidate paths, and F (r)=F (r)(cid:7)F (r) (22)
+sso ss so
+the green line is the original path.
+When F (r) is 1, the corresponding candidate path has
+D. Total cost function sso
+an intersection phenomenon with other candidate paths, and
+The above obtains three cost functions, which are weighted
+the candidate path needs to be discarded to select other
+and summed to obtain the minimum value, and the candidate
+candidate paths. Design a priority probability to decide which
+path corresponding to the value is the most suitable candidate
+candidate path to keep preferentially. The probability that the
+path to avoid the sudden threat. The formula is as follows:
+first candidate path is selected is P , and the probability that
+1
+F z (i)=μ 1 F sa (i)+μ 2 F sm (i)+μ 3 F co (i) (16) the second candidate path is selected is P 2 . Then, a candidate
+path that is preferentially reserved is selected according to the
+Where:μ +μ +μ =1,μ ,μ andμ aretheweightsof
+1 2 3 1 2 3 roulette rules. Candidate paths that are not selected need to
+the security cost function, the smoothness cost function and
+be replaced by other paths in the cluster of candidate paths in
+the consistency cost function, respectively.
+which they are located.
+E. Secondary safety screening Using the principle of the crowding mechanism: First, the
+After the most appropriate candidate path is obtained by values obtained by the total cost function are used to sort the
+the total cost function, the path is only applicable to the candidate paths belonging to the same cluster. Then, when
+sudden threat. When multiple sudden threats are encountered, the F sso (r) value of the optimal candidate path is 1, the
+multiple candidate paths are generated. Because the relation- suboptimal candidate path is selected. Finally, it is repeated
+ship between these different cluster candidate paths is not to substitute the above equation to determine whether there is
+considered,andtherelationshipbetweenthesecandidatepaths still an intersection phenomenon. If this phenomenon exists,
+and other original paths is not considered, crossover may the third best candidate path is selected, and so on. Until the
+occur. There are two sudden threats in this article. To avoid qualified candidate path is obtained.
+this phenomenon, a secondary security screening function is
+V. SIMULATIONRESULTSANDVERIFICATION
+set up as follows:
+Inordertoverifytheabovetheory,asimulationexperiment
+First, consider the relationship between different cluster
+was performed below. In this paper, the setting is as follows:
+candidate paths. Simultaneous formula:
+(cid:19) three unmanned aerial vehicles are set up as UAV1, UAV2
+y 1 =a 1 (x−x s )3+b 1 (x−x(s))2+c 1 (x−x s )+y s and UAV3, and the two ground targets are called Target1 and
+y =a (x−x )3+b (x−x(s))2+c (x−x )+y Target2 respectively. Three UAVs were assigned missions to
+2 2 s 2 2 s s
+(17) attack two ground targets. The tracks of the UAVs are derived
+The candidate path y obtained from the total cost func- from the v-diagram and the mission assignment model. The
+1
+tion when encountering the first sudden threat, the candidate blue solid circle is a known obstacle, the red path is the path
+path y obtained from the total cost function when the second taken by three unmanned aerial vehicles, as shown in Fig.4,
+2
+sudden threat is encountered. Then, any two formulas in the the unit of the coordinate axis is meter.
+above formula are substituted into the following formulas: The following situation is set: UAV2 and UAV3 encounter
+two sudden threats during flight, generating two clusters of
+S (r)=y −y , r ⊆(1,2) (18)
+L 1 2
+candidate paths. The red solid circle is a sudden threat, these
+Ifthereisazeropointintheformula,itmeansthatthereare blue paths wrapped with the sudden threat is candidate paths,
+crossoverphenomenabetweenthetwocandidatepathsbrought as shown in Fig.5, the unit of the coordinate axis is meter.
+in. Otherwise, there is no crossover phenomenon. After generating the candidate paths, the optimal path
+(cid:17)
+1 S (r) exists zero among the two clusters of candidate paths is obtained by
+F (r)= L (19)
+ss 0 S (r) does not exist zero the total cost function and the secondary security screening.
+L
+2199
+Fig.4. Simulationrenderingwithallcandidatepaths Fig.7. Simulationrendering
+for global planning to avoid sudden threats. First,the V-
+diagram is used for global planning of a single unmanned
+aerial vehicle. Then, the mission assignment model is used to
+obtain the global planning path of multiple unmanned aerial
+vehicles. When a sudden threat is encountered, a cluster of
+candidate paths is generated according to the cubic spline
+second-order continuity and boundary conditions, and a total
+cost function is established to select an appropriate path.
+When multiple threats are encountered, in order to avoid
+crossoveroftheobtainedpaths,asecondarysecurityscreening
+is performed on the obtained suitable paths. The secondary
+security screening process is: first the priority probability is
+Fig.5. Simulationrenderingwithallcandidatepaths set, using roulette to determine the priority reserved path, and
+then using the crowding mechanism principle to make the
+otherpathreplacedbyotherpathsinitscandidatepathcluster.
+The cyan path in the candidate path is the selected optimal The simulation proves that the proposed algorithm can obtain
+candidatepath,andthethickercyanpathfollowingtheoptimal multiple secure and smooth paths with short time-consuming
+candidate path is the path that returns to the original path andhighefficiency.Sincethethreatsconsideredareroundand
+after the UAV completes the avoidance of the sudden threat, such threats are not representative, the next research direction
+as shown in Fig.6 and Fig.7, the unit of the coordinate axis is isthepathplanninginthepresenceofthreatsofothershapes.
+meter.
+ACKNOWLEDGMENT
+This work was supported in part by National Natural
+Science Foundation of China (grant number 61074159).
+REFERENCES
+[1] PlamenAngelov.PerceptionandAvoidanceofUAVSystem:Research
+and Application [M]. Qi Xiaohui (Translation). Beijing: National De-
+fenseIndustryPress,2014.
+[2] Milton C.P.Santos, Lucas V.Santana, Alexandre S.Brandao and Mri-
+o Sarcinelli Filho. UAV Obstacle Avoidance using RGB-D System
+[C]//Unmanned Aircraft Systems (ICUAS), 2015 IEEE International
+Conferenceon,2015,312-319.
+[3] Marcin Odelga, Paolo Stegagno and Heinrich H.Blthoff. Obstacle De-
+tection, Tracking and Avoidance for a Teleoperated UAV[C]//Robotics
+andAutomation(ICRA),2016IEEEInternationalConferenceon,2016,
+Fig.6. Simulationrenderingwithallcandidatepaths 2984-2990.
+[4] Kamel M, Stastny T, Alexis K, et al. Model predictive control for
+trajectory tracking of unmanned aerial vehicles using robot operating
+system[J].Robot Operating System(ROS). Springer International Pub-
+VI. CONCLUSION
+lishing2017
+[5] Likas A, Vlassis N, Verbeek J J. The global k-means clustering algo-
+This paper proposes a local planning algorithm for multi-
+rithm[J]. Pattern Recognition: The Journal of the Pattern Recognition
+UAV based on V-diagram and the mission assignment model Society,2003,36(2),451-461.
+2200
+[6] Aslam J A, Pelekhov E, Rus D. The star clustering algorithm for
+staticanddynamicinformationorganization[J].GraphAlgorithmsAnd
+Applications5.2004.
+[7] RbertSzelepcsnyi.Themethodofforcedenumerationfornondetermin-
+isticautomata[J].ActaInformatica,1988,26(3),279-284.
+[8] WangWeiping,LiuJuan.Researchonlognitudinaltrimmedcharacteris-
+ticsofjoined-wingbymulti-control-surfaces[J].FlightMechanics,2010,
+28(2),6-10
+[9] Al-Kazemi B, Mohan C K. Multi-phase generalization of the particle
+swarmoptimizationalgorithm[C].CongressonEvolutionaryComputa-
+tion.IEEE,2002.
+[10] Trelea I C. The particle swarm optimization algorithm: convergence
+analysis and parameter selection[J]. Information Processing Letters,
+2003,85(6),317-325.
+[11] KuffnerJJ,LavalleSM.RRT-connect:Anefficientapproachtosingle-
+query path planning[C]. Proceedings 2000 ICRA. Millennium Con-
+ference. IEEE International Conference on Robotics and Automation.
+SymposiaProceedings(Cat.No.00CH37065).IEEE,2002.
+[12] LiWenguang,SunShiyu,LiJianzeng,etal.ADynamicTrackPlanning
+Algorithm for UAV Based on Segment Optimization RRT[J].System
+EngineeringandElectronics,2018,40(08),1786-1793.
+[13] Yan Wanfeng, Wang Guangyuan, YAN Jian-gang, et al. Cooperative
+path planning for aerocrafts based on task assignment[J]. Systems
+Engineering-TheoryandPractice,2013,33,(9),2443-2448.
+[14] Zhao Wenting, Peng Junyi. VORONOI Diagram-based Path Planning
+forUAVs[J].JournalofSystemSimulation,18(S2),2006,159-162+165.
+2201

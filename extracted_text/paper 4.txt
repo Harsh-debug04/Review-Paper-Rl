@@ -1,0 +1,1054 @@
+ReceivedJanuary9,2021,acceptedFebruary2,2021,dateofpublicationFebruary5,2021,dateofcurrentversionFebruary12,2021.
+DigitalObjectIdentifier10.1109/ACCESS.2021.3057485
+Unmanned Aerial Vehicle Path Planning
+Algorithm Based on Deep Reinforcement
+Learning in Large-Scale and Dynamic
+Environments
+RONGLEIXIE ,ZHIJUNMENG ,LIFENGWANG ,HAOCHENLI ,KAIPENGWANG ,
+ANDZHEWU
+SchoolofAeronauticScienceandEngineering,BeihangUniversity,Beijing100191,China
+Correspondingauthor:ZhijunMeng(mengzhijun@buaa.edu.cn)
+ThisworkwassupportedinpartbytheNationalNaturalScienceFoundationofChinaunderGrant61702023andGrant61976014,andin
+partbytheFundamentalResearchFundsfortheCentralUniversities.
+ABSTRACT PathplanningisoneofthekeytechnologiesforautonomousflightofUnmannedAerialVehicle.
+Traditional path planning algorithms have some limitations and deficiencies in the complex and dynamic
+environment. In this article, we propose a deep reinforcement learning approach for three-dimensional
+pathplanningbyutilizingthelocalinformationandrelativedistancewithoutglobalinformation.UAVcan
+obtainthelimitedenvironmentalinformationnearbyintheactualscenariowithlimitedsensorcapabilities.
+Therefore, path planning can be formulated as a Partially Observable Markov Decision Process. The
+recurrentneuralnetworkwithtemporalmemoryisconstructedtoaddressthepartialobservabilityproblemby
+extractingcrucialinformationfromhistoricalstate-actionsequences.Wedevelopanactionselectionstrategy
+that combines the current reward value and the state-action value to reduce the meaningless exploration.
+Inaddition,weconstructtwosamplememorypoolsandproposeanadaptiveexperiencereplaymechanism
+basedonthefrequencyoffailure.Thesimulationexperimentresultsshowthatourmethodhassignificant
+improvements over Deep Q-Network and Deep Recurrent Q-Network in terms of stability and learning
+efficiency. Our approach successfully plans a reasonable three-dimensional path in the large-scale and
+complexenvironment,andhastheperfectabilitytoavoidobstacles.intheunknownenvironment.
+INDEXTERMS Deepreinforcementlearning,pathplanning,recurrentneuralnetwork.
+I. INTRODUCTION planningofrobotsbecauseofthehugestatespaceandaction
+Theunmannedaerialvehicle(UAV)hasattractedwideatten- space. Path planning for the UAV has become a research
+tioninbothmilitaryandcivilianfieldsbecauseoflowcost, hotspotandreceivedwideattentionfromresearchersinrecent
+flexibilityandsmallsize,et[1],[2].Thereliableandreason- years.Inthisarticleweproposeanapproachofautonomous
+able path planning is the basis for ensuring its own safety planningofavailablepathsfromstartingpointtodestination
+and mission success due to the increasingly complex envi- incomplexenvironment.
+ronment. Some missions have restrictions on flight altitude Inpreviouswork,therearemanyclassicalmethodssuchas
+andfuelconsumption,etc.Inaddition,therearemanythreats A∗algorithm[4]andartificialpotentialfieldmethod[5],[6],
+suchashills,buildingsatlowflightingaltitude.However,the Voronoidiagrams[7],whichhavebeenproventobeeffective
+UAV can only rely on their own limited sensors to obtain for two-dimensional environment. For the path planning of
+partialthreatinformation[3].Furthermore,thepathplanning complex environment with large state space, the intelligent
+of the UAV is more complicated and difficult than the path pathplanningmethodshaveattractedalotofattention.Typi-
+calintelligentmethodsincludegeneticalgorithm[8],[9],ant
+colonyalgorithm[10],[11],artificialbeecolony[12],particle
+The associate editor coordinating the review of this manuscript and
+swarm optimization [13], [14], and so on. The combination
+approvingitforpublicationwasJunxiuLiu .
+24884 ThisworkislicensedunderaCreativeCommonsAttribution4.0License.Formoreinformation,seehttps://creativecommons.org/licenses/by/4.0/ VOLUME9,2021
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+ofdifferentmethodscanmakeuseoftheadvantagesofeach combiningRecurrentNeuralNetwork(RNN)withQlearning
+algorithm[15]–[17].FastMarching[18],[19]isanefficient algorithm. The performance of DRQN is much better than
+three-dimensionalpathplanningmethodforkeepingafixed DQN in long-term strategy game with delayed reward, but
+flightheightinanopenfieldwithnon-uniformterrain,which DRQNhasthedisadvantageofunstableconvergence.
+fully considers the smoothness and safety of the generated Inrecentyears,researchershavetriedtosolvetheproblem
+path. Compared with the classical path planning algorithm, of path planning by deep reinforcement learning algorithm.
+Fast Marching method has better computational efficiency Pfeifferetal.[25]proposeanend-to-endlearningmodelthat
+and practical value. The paper addresses the UAV three- analyzes laser information by CNN and then uses A∗ algo-
+dimensional path planning in a local dynamic environment, rithmaslabelinformationforsupervisedlearning.Therobot
+while the classic A∗ and RRT algorithms are suitable for movement instruction is directly obtained through the net-
+staticpathplanningwithaknownglobalenvironment.Intel- workaccordingtothelaserranginginformationandthetarget
+ligent algorithms represented by genetic algorithm and ant position.Chenetal.[26]controltheautonomousvehiclesby
+colonyalgorithmhaveenvironmentaladaptabilityandsystem obtaining the semantic information extracted from images.
+robustness.However,thesealgorithmsrequirealotofsearch Kretzschmar et al. [27] develop an inverse reinforcement
+and iteration, resulting in inefficient planning. The artificial learning approach to solve the robot navigation problem by
+potential field method has good real-time performance due makinguseofthehumanexperiencetospeedupthelearning
+toitssimplecalculation.Itwouldbeeasytofallintoalocal speed. Lei Tai et al. [28] develop a robot motion planner
+optimal solution if the gravity and repulsion are the same based on deep reinforcement learning, which utilizes laser
+at certain points. If the target is near an obstacle, the large rangingsensorstoobtaininformationaboutnearbyobstacles.
+repulsion would make it difficult for the UAV to approach Navigation problems without global information in com-
+thetargetpoint. plex environments can be modeled as Partially Observable
+The classic path planning algorithms perform well for Markov Decision Process (POMDP), and recurrent neural
+obstacle avoidance in simple environments. However, rein- network can be used to memorize past observation to gain
+forcement learning can show its advantages in the dynamic moreknowledge[29],[30].
+and complex environment. First of all, reinforcement learn- Cui et al. [31] propose a navigation system that makes
+ing can dynamically adjust parameters through training by UAVtakeadvantageof2Dlaserrangefindertonavigateinthe
+interacting with the environment, which has positive adapt- foliageenvironmentwithoutGPS.SimultaneousLocalization
+abilityandrobustnesscomparedwithclassicalgorithms.Sec- andMapping(SLAM)isaclassicmethod,whichcanestimate
+ondly,reinforcementlearningessentiallyobtainsthemapping thepositionoftheUAVandobtaininformationaboutnearby
+relationship from state to action, which does not involve a obstacles by constructing a map of the surroundings [32],
+complexsearchprocessinthedecision-makingprocess,soit [33]. Gageik et al. [34] combine multiple low-cost sensors
+is suitable for UAV path planning that requires real-time suchasinfraredandultra-sonictoachieveobstacleavoidance
+decision-making. Thirdly, reinforcement learning defines flightofUAVwithlowcomputationalburdenandeconomic
+reward function according to distance, fuel consumption, cost.
+whichcanachievemulti-objectiveoptimizationabilitywith- The deep reinforcement learning can learn available path
+outalotofmanualparameteradjustment.Fourthly,reinforce- planningpolicybyinteractingwiththeenvironmentwithout
+mentlearningdoesnotdependonthepriorinformationofthe manually setting complex rules. However, there are some
+environment,soitissuitablefordynamicpathplanningwith challenges of path planning in the large-scale and dynamic
+limitedinformation. environment:
+Deep neural network has excellent feature learning abil- 1) The enormous number of states makes the neural net-
+ity, which can extract concise effective feature information worklearningslowlyandconvergingdifficultly.
+fromcomplexhigh-dimensionalstate.Reinforcementlearn- 2)TheUAVcanonlyobtainlocalenvironmentinformation
+ingalgorithmcanlearnanoptimalpolicybyinteractingwith duetolimitedsensorcapabilities,makingitdifficulttoselect
+environment. Deep reinforcement learning algorithm com- thecorrectaction.
+biningdeeplearningandreinforcementlearninghasachieved 3)Therewardhasthecharacterofdelay,becausetheagent
+remarkable achievements in the fields of industrial control mayhavetomakehundredsofstepstoreachthetargetpoint
+andgaminggames[20].LangeandRiedmiller[21]propose inthelarge-scaleenvironment.
+thecombinationofdeeplearningandreinforcementlearning. In this article, we propose a deep reinforcement learning
+Mnihetal.[22]proposeDeepQ-Network(DQN)algorithm approachtosolvetheproblemoftheUAVpathplanninginthe
+combining Convolutional Neural Network (CNN) with Q complex and dynamic environment. The main contributions
+learning algorithm, and the training results show that DQN ofthisarticlearesummarizedasfollows:
+has surpassed human players in the Atari2600 game plat- 1) We propose a new action selection strategy by com-
+form.Schauletal.[23]proposeanexperiencereplaymecha- bining the current reward R value and the Q value, which
+nism to accelerates the learning speed of DQN by breaking addresses the problem of inaccurate prediction of the neu-
+the correlation of sample sequence. Hausknecht and Stone ral network at the early stage of training. The purpose
+[24]developDeepRecurrentQ-Network(DRQN)algorithm of new action selection strategy is to reduce meaningless
+VOLUME9,2021 24885
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+FIGURE2. Theobservationot consistsoftwoparts:o1
+t
+representsthe
+relativeterrainaltitudeinformationneartheUAV,ando2representsthe
+t
+distancetothedestination.
+FIGURE1. Thethree-dimensionaltopographicmap.
+exploration, especially to reduce repeated meaningless o si (the probabilistic safety) can be defined as (2). H uav
+collision. representstheabsoluteheightoftheUAV.
+2) We propose an adaptive sampling mechanism. Two o =H −H(X,Y) (2)
+si uav i i
+kinds of memory pools are constructed according to the
+averagerewardvalueperround.Samplesaretakenfromthe The sensor on the UAV can sense the environmental
+important memory pool according to the frequency of task information of surrounding area, so the observation o is
+t1
+failure. This approach improves the learning efficiency and composed of the probabilistic safety of k points o1 =
+t
+convergence stability of the algorithm with low computa- [o ,o ···o ].
+s1 s2 sk
+tionalcost. The UAV can obtain its own location information
+The rest of the paper is organized as follows: SectionII (X ,Y ,Z ) by the inertial measurement unit or GPS. The
+O O O
+introduces the framework of the path planning algorithm. targetposition(X ,Y ,Z )canbeknown,soo2iscalculated
+T T T t
+SectionIIIpointsoutsomemethodstoacceleratethelearning by:
+speed of algorithm. SectionIV describes the experimental
+o2 =(X −X ,Y −Y ,Z −Z ) (3)
+results and analyzes it. SectionV presents conclusion and t T O T O T O
+futurework.
+Wehaveconsideredsomeaircraftmaneuveringrestrictions
+in defining the action space of the UAV, such as minimum
+II. CONSTRUCTIONOFTHEALGORITHM
+turning radius and maximum climbing angle. As shown in
+Inthissection,wedefinethestatespaceandactionspace,and
+Fig.3,iftheUAVentersthe‘‘saddle-shaped’’areabetween
+formulate the path planning problem as POMDP. Then we
+the two obstacles, the probability of failure could be very
+proposeapathplanningalgorithmbasedondeepreinforce-
+high.ItisdifficultfortheUAVtodetecttheabovedangerous
+ment learning and present the network structure including
+areas in time due to the limited sensor detection capability.
+CNNandRNN.
+If the UAV takes the action of direct flight A or A , the
+0 45
+probabilityofobstacleavoidancefailurecouldbehigh.Ifthe
+A. DEFINITIONOFOBSERVATIONANDACTION
+UAV chooses to turn left A , it can ensure flight safety.
+We establish a three-dimensional topographic map for the 63
+Therefore, the stronger the horizontal maneuvering ability
+UAV to evaluate path planning algorithm. The UAV should
+is, the greater the probability of UAV escaping safely. The
+avoid collision with the obstacle, and the height of obstacle
+action includes horizontal action aH and vertical action aV.
+canbecalculatedby: t t
+AsshowninFig.4,theredsquaresrepresentoptionalactions.
+H(X,Y)= (cid:88)N
+i=1
+h
+i
+e − (cid:16)X− ci ai (cid:17)2 − (cid:16)Y− ci bi (cid:17)2 (1) H
+di
+o
+re
+ri
+c
+z
+t
+o
+fl
+n
+i
+t
+g
+a
+h
+l
+t
+a
+,
+c
+tu
+ti
+r
+o
+n
+n
+in
+a
+g
+H t
+rig
+in
+h
+c
+t
+l
+4
+u
+5
+d
+/
+e
+6
+s
+3
+t
+d
+u
+e
+rn
+g
+i
+r
+n
+e
+g
+es.
+le
+V
+ft
+er
+4
+ti
+5
+c
+/
+a
+6
+l
+3
+ac
+d
+t
+e
+io
+g
+n
+re
+a
+es
+V
+t
+,
+whereH(X,Y)representstheheightofobstacleatthehori- includesclimbing45degrees,directflightanddescending45
+zontalposition(X,Y).h controlstheheightoftheobstacle. degrees.Thereare11actionsintheactionspaceoftheUAV.
+i
+c determinesthesizeoftheobstacle.(a,b)isthehorizontal All maneuvers and spatial coordinates are set to integers
+i i i
+coordinateoftheobstacle. foreaseofcalculation.Discretizationalsohelpstoreducethe
+The three-dimensional topographic map based on (1) is scaleofstatespace.
+shownasFig.1.TheUAVcannotacquireglobalinformation
+due to sensor limitations in the real environment. And the B. MARKOVMODEL
+limited information perceived by the UAV sensor is called AsshowninFig.5,itisasimplifiedmodelofobstaclesthat
+the observation o . As depicted in Fig. 2, o consists of two theUAVmayencounterintherealenvironment.Itisassumed
+t t
+parts: the local environment information o1 and the relative that the UAV is at the point A at the beginning. Since the
+t
+positiono2fromthecurrentpointtothetargetpoint. sensordoesnotperceivethe‘‘invertedV-shaped’’obstaclein
+t
+Assumethatthethree-dimensionalcoordinateofapointis frontduetothelimitedmeasuringrangeofthesensor,point
+(X,Y,Z),andtheheightoftheUAVrelativetotheground B may be chosen as the desired position point in order to
+i i i
+24886 VOLUME9,2021
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+FIGURE5. TheUAVencountersaninvertedV-shapedobstacle.A∼D28
+indicatespossiblelocationpoints..
+FIGURE3. Thestronghorizontalmaneuverabilityishelpfultoimprove
+thesuccessrateofUAVobstacleavoidance.
+Thereinforcementlearningalgorithmlearnsapolicyπthat
+theUAVchoosesanactiona basedonapieceofhistorical
+t
+trajectoryϕ t =(o t−L+1 ,o t−L+2 ,···o t )oflengthL,whichcan
+bedenotedasa ∼ π(ϕ ).Historicaltrajectoryϕ isbenefi-
+t t t
+cialtoestimatetrueenvironmentalstates informationmore
+t
+accurately.Thegoalofalgorithmistolearnanoptimalpolicy
+π∗, which the UAV can obtain the maximum accumulated
+discountedreward.
+ThestatevaluefunctionV π(ϕ )isdefinedastheexpected
+t
+sum of discounted rewards in accordance with policy π.
+FIGURE4. Theactionspaceincludeshorizontalactionandvertical2 V π(ϕ t )isdefinedas:
+action.
+V π(ϕ )=E
+(cid:104)(cid:88)∞
+γkr |ϕ
+(cid:105)
+(4)
+t
+k=0
+t+k t
+approach the target point. The UAV finds out that there is Thestate-actionvaluefunctionQ π(ϕ t ,a t )istheexpected
+an obstacle in front of point B, and could choose to turn to discountedrewardobtainedbytakingtheactiona t inthestate
+pointCorpointD.AssumingthattheUAVchoosestoreach ϕ t accordingtothepolicyπ.Q π(ϕ t ,a t )canbedefinedas:
+pointC,theUAVcanstillchoosepointBinthenextstep.As
+Q π(ϕ ,a )=E
+(cid:104)(cid:88)∞
+γkr |ϕ ,a
+(cid:105)
+(5)
+aresult,theUAVmayfallintoalooptrapandcannotescape t t
+k=0
+t+k t t
+the ‘‘inverted V-shaped’’ obstacle. If the algorithm has the
+Q-learning is a model-free reinforcement learning algo-
+abilitytomemorizehistoricalinformation,itcaneffectively rithm. The Q π (ϕ ,a ) is updated iteratively by Bellman
+avoid the above problem. The true state of the environment k+1 t t
+formula:
+canbemoreaccuratelyestimatedthroughapieceofhistorical
+trajectoryinformation.Theobservation-actionsequencedoes Q π (ϕ ,a )=Q π(ϕ ,a )+α(r +γmax
+k+1 t t k t t t
+p n ( o o t t h + a 1 v |o e t M ,a a t r ) k . o T v h p e r r o ef p o e r r e ty , w p e (o c t+ an 1 |o m 0 , o a d 0 e , l o t 1 h , e a p 1 a · t · h ·o p t l , a a n t n ) in (cid:54)= g Q π k (ϕ t+1 ,a t+1 )−Q π k (ϕ t ,a t )(cid:1) (6)
+problemasPOMDP. where α ∈ [0,1] is learning rate, which controls parameter
+POMDPcanberepresentedby(S,A,P,R,(cid:127),O,γ).S is updatingspeed.
+the set of true state s in the environment. A is the set of TraditionalQ-learningutilizestablestorecordthelearned
+t
+all available actions of the UAV, and a ∈ A represents the state-actionvalues,whichlimitstheabilityofthealgorithm
+t
+action that the UAV executes at time t. P is the probability to solve the problem of large-scale planning state space.
+distributionthattheUAVmovestootherstatesafterexecuting Therefore, we use the neural network to approximate the
+action a t at the state s t , P(s t+1 |s t ,a t ) → (0,1). R is the state-action value. The neural network can theoretically fit
+reward that the UAV executes action a at the state s and anynon-linearmodelwithenoughtrainingdataandsuitable
+t t
+transferringtostates t+1 ,andcanbedefinedasR(s t ,a t )=r t . learningparameters.
+(cid:127) is the set of observations. o ∈ (cid:127) is the local environ-
+t
+mental information obtained by the sensor. O(o |s ,a ) is C. NETWORKSTRUCTURE
+t t t
+the conditional observation probability distribution that the AsillustratedinFig.6,thenetworkstructurecontainsthree
+UAV executes action a at the state s . γ is the discount neural networks. The input of the model is a sequence of
+t t
+factor. historicaltrajectoryϕ .WeadopttheCNNmoduletocapture
+t
+VOLUME9,2021 24887
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+observationsequence.Thenetworkrandomlytakesacertain
+number of sample sequences from the memory pool for
+training.
+Therearetwoindependentneuralnetworkstopredictthe
+action value: the current value network Q(ϕ ,a |θ) and
+(cid:16) (cid:17) t t i
+thetargetvaluenetworkQ ϕ t+1 ,a t+1 |θ i (cid:48) .Thestructureof
+thetwonetworksisthesame.Thecurrentnetworkusesgra-
+dientdescenttoupdatethenetworkweights,andtheupdated
+parametersarecopiedtothetargetnetworkataregularinter-
+val. Since the two networks are not updated synchronously,
+thestabilityofthealgorithmisimproved.Thelossfunction
+L(θ)isgivenas:
+i
+(cid:20)
+1
+L(θ
+i
+)=E
+(ϕ,a,r,ϕ(cid:48))∼D
+(r
+t
++γmax
+2
+Q (cid:0)ϕ t+1 ,a t+1 |θ i (cid:48)(cid:1)−Q(ϕ t ,a t |θ i )(cid:1)2 (cid:105) (8)
+Currentvaluenetworkisupdatedby:
+FIGURE6. Neuralnetworkarchitecture.
+(cid:49)θ i = E (ϕ,a,r,ϕ(cid:48))∼D [r t +γmaxQ (cid:0)ϕ t+1 ,a t+1 |θ i (cid:48)(cid:1)
+∂Q(ϕ ,a |θ)
+spatial feature information from the observation o1, then −Q(ϕ ,a |θ)] t t i (9)
+t t t i ∂θ
+constructtheRNNmoduletoextracttemporalfeatureinfor- i
+mation.Finally,theestimatedstate-actionvalueispredicted θ i+1 = θ i +α(cid:49)θ i (10)
+byfullyconnectedneuralnetwork.TheCNNiseasytolose
+informationwhenextractingfeatures.Therelativepositiono2 III. APPROACHESTOSPEEDUPALGORITHM
+t In this section, we propose several methods to speed up the
+isanimportantthree-dimensionalinformation,soitbypasses
+learningofthealgorithm.
+theCNNmoduleanddirectlyinputstotheRNNmodule.The
+CNNmoduleremovesthepoolinglayer,becausethepooling
+A. REWARDDESIGN:INCORPORATINGDOMAIN
+layercanresultininformationloss.
+If o1 directly inputs to the RNN module, the amount of KNOWLEDGE
+t
+The reward function evaluates the agent executing actions
+calculation could become very huge because of its high-
+in a certain state. The sparse reward function is a common
+dimensional and redundant information. Thus, the function
+method,whichtheagentonlygetsrewardswhenitsucceeds
+of CNN module is to extract low-dimensional and effective
+orfails.However,thestatespaceistoolargetoobtainvalu-
+spatialfeatures.RNNmodulecanextractthetemporalfeature
+ablerewardinalarge-scaleenvironment,whichundoubtedly
+informationofthesamplesequence,andfundamentallysolve
+leadstolowlearningefficiencyofthealgorithm.Inaddition,
+thememoryproblemofsequencesamples.Thehiddenlayer
+the UAV is not only to avoid obstacles to reach the target
+h notonlyreceivesthefeaturec fromtheCNNmodule,but
+t t
+point, but also to ensure the path to be as short as possible.
+alsoreceivesthehiddenlayerstateh t−1 attheprevioustime.
+ThecalculationofRNNisgivenby: Andsometasksrequiretheflightaltitudetobeaslowaspos-
+sible.Therefore,byincorporatingdomainknowledgesuchas
+h t =f (w xh c t +w hh h t−1 ) (7) fuelconsumptionanddistancetothetargetpoint,aheuristic
+rewardfunctionr isconstructed:
+wheref isanonlinearactivationfunction.w andw rep- t
+xh hh
+resenttheconnectionweightsofneuronsofdifferentlayers. r =ω p +ω p +ω p +ω p (11)
+t 1 1 2 2 3 3 4 4
+We adopt the Long Short-Term Memory (LSTM) to alle-
+whereω ∼ω arecoefficients,andp ∼p aretheevalua-
+viatetheproblemofgradientdisappearance[35].Theneural 1 4 1 4
+tionfactorsofpathperformance.Theconcretemeaningand
+network has the disadvantage of being difficult to converge
+calculationmethodareasfollows:
+due to correlation of sample sequences [36]. We adopt the
+fixedQ-targetnetworkandexperiencereplaymechanismto 1) p 1 representsthemaneuveringcostofUAVexecuting
+speeduptheconvergenceofthealgorithm[22]. action a t . The UAV should keep the flight state as
+SinceRNNhastheabilityofrememberingtemporalinfor- straight as possible to reduce fuel consumption. The
+mation,thepurposeofexperiencereplaymechanismiscon- maneuvering cost consists of horizontal maneuvering
+venientforthetrainingofthealgorithmratherthanbreaking cost pH 1 and vertical maneuvering cost pV 1 . The p 1 is
+the correlation of the samples in this article. The sample givenby:
+e t = (ϕ t ,a t ,r t ,ϕ t+1 ) generated by the interaction between p =ωHpH +ωVpV (12)
+the UAV and environment is stored in the memory pool 1 1 1 1 1
+D = {e ,e ,··· ,e } with fixed-size V. L is the length of whereωH andωV arecoefficients.
+1 2 V 1 1
+24888 VOLUME9,2021
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+2) p isrelatedtothedistancefromthecurrentpositionto The approach utilizes the reward function to evaluate all
+2
+thetargetpoint.Inartificialpotentialfieldmethod,the theexecutableactionsaccordingtothecurrentstateϕ .The
+t
+targetpointwouldexertgravitationontheUAV,which evaluation value only focuses on the current reward. The
+providesdirectionguidanceforUAV’sactionselection correspondingsetofrewardsrs isgivenby:
+t
+policy.p isgivenby:
+2
+rs =[R(ϕ ,a ),R(ϕ ,a ),...R(ϕ ,a )] (17)
+t t 1 t 2 t n
+p =log (|o |+δ) (13)
+2 10 t2
+Weexpecttopaymoreattentiontotheroleofrewardsrather
+whereδispositiveconstanttoavoid0.
+thanQvalueintheearlystagesoftraining,soastoavoidalot
+3) p representstherewardofUAVdeviatingfromcruise ofrepetitiveandmeaninglessfailuresduetocollisions.The
+3
+altitudeZ 0 ,whichisdesignedtoensureUAVflyingat predictionoftheneuralnetworkQ(ϕ t ,a t |θ i )couldbemore
+cruisealtitude.Thep 3 isgivenby: accurateasthetrainingstepsincrease.Theeffectofrs t onthe
+overallselectionstrategyisreducedduetotheincreasingof
+p 3 =(Z t −Z t+1 )(Z t −Z 0 ) (14) Q(ϕ t ,a t |θ i ).TheRQactionselectionstrategyisgivenby:
+4) p 4 is the traditional sparse reward function, which π(cid:48)(a |ϕ )
+t t
+includesthreecases.Thep 4 isgivenby:  randomchoice 1−ε
+  R 0 success =  argmax(Q(ϕ t ,a|θ i )+rs t gn 1(cid:80)n k=1 Q(ϕ t ,ak |θ i ) ) ε (18)
+p = −R failure (15) a∈A
+4 0
+0 otherwise whereg ∈(0,1)isconstant,andnrepresentsthenumberof
+actionsintheactionspace.
+where R is positive constant. If the distance between UAV
+0 The purpose of RQ action selection strategy is to reduce
+andtargetislessthanacertainthreshold,themissioncanbe
+meaninglessexploration,especiallytoreducerepeatedmean-
+consideredassuccessful.IftheUAVcollideswithobstacles
+inglesscollision.RQmethodcannotguaranteethatthealgo-
+orexceedstheheightlimit,itwouldbesetasmissionfailure.
+rithmcanlearnaneffectivestrategyquickly.Therefore,UAV
+can still explore the environment in the learning process so
+B. IMPROVEDACTIONSELECTIONSTATEGY astoavoidfallingintolocaloptimum.Inaddition,ε-greedy
+The common action selection strategy for reinforcement
+isusedforactionselectiontoensuretheUAVtoexplorethe
+learningisε-greedy.Itselectsanactionbasedonmaximum
+environment.
+state-action value Q(ϕ ,a |θ) with the probability ε, and
+t t i TheRQactionselectionstrategyutilizestherewardvalue
+randomly selects an action with the probability 1-ε. The set rs to correct neural network prediction errors. The pro-
+t
+ε-greedyisgivenby:
+posed method focuses on short-term reward in the early
+(cid:40) randomchoice 1−ε stageoftraining,which canreducethecollisionprobability
+π(a |ϕ )= (16) between UAV and obstacles. In the later stage of network
+t t argmaxQ(ϕ ,a|θ) ε
+a∈A
+t i training,sinceQ(ϕ
+t
+,a
+t
+|θ
+i
+)becomesmoreaccurate,thepre-
+(cid:16) (cid:17) dictionoftheneuralnetworkismoreemphasizedintheaction
+The weight parameters of Q(ϕ t ,a t |θ i ) and Q ϕ t ,a t |θ i (cid:48) is selection.Inaddition,RQactionselectionstrategycanmake
+randomlysetatthebeginning,sothestate-actionvaluepre- theUAVmoveaslongaspossibleintheinitialtrainingstage,
+dictedbytheneuralnetworkisveryinaccurate.Thereward and obtain more environmental information to speed up the
+r t is the only valuable parameter in the target value r t + learningspeedofthealgorithm.
+(cid:16) (cid:17)
+γmaxQ t ϕ t+1 ,a t+1 |θ i (cid:48) at the beginning. Therefore, it can
+basically be considered that the action is randomly selected C. ADAPTIVESAMPINGMECHANISM
+in the early stage of algorithm training. Song et al. [37] It is necessary to take some measures to reduce number
+increasethelearningefficiencybytakingadvantageofprior of UAV-environment interactions and make efficient use of
+knowledge to initialize the weight of Q(ϕ ,a |θ), but it is existingsamples.Thetransferlearningcantransfertheexist-
+t t i
+difficult to obtain enough prior knowledge. In addition, the ing knowledge from the source task to the target task [38].
+learning rate of the algorithm decreases as the number of However,itisdifficulttomeasurethesimilaritybetweenthe
+training steps increases. In the early stage of training, there sourcetaskandthetargettask,whichmakestheapplication
+are a large number of repeated collisions because it cannot difficult. The samples can be utilized to model the environ-
+effectivelyavoidobstacles.Thealgorithmhasahighlearning ment,butthismethodrequireshigheraccuracyofthemodel
+rate when exploring the first part of the environment. After [39]. The prioritized experience replay mechanism [23] is
+alargenumberoftrainingsteps,thelearningrateisalready provedtobeaneffectivemethod,whichdeterminesthesam-
+verylowwhenlearningthelatterpartoftheenvironment. pleprioritybasedontheTD-error.Butthismethodneedsto
+To solve the above problem, we propose a new action continuouslysortthesamplesinthememorypoolaccording
+selectionstrategyπ(cid:48)(a |ϕ )bycombiningtherewardRand tothepriority,whichgreatlyincreasesthecalculationamount
+t t
+the Q value, referred to as RQ action selection strategy. ofthealgorithm.
+VOLUME9,2021 24889
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+We construct two memory pools: one for important problemsofalgorithms,weproposetheRQ_ADSA_DRQN
+samples and the other for normal samples. There are two approach which uses RQ method and ADSA method based
+importantrequirementsforpathplanningproblems:avoiding on DRQN. The specific flow of the algorithm is shown in
+obstaclesandreachingthedestination.Thesamplescolliding pseudocodeandFig.7.
+withobstaclescanhelpthealgorithmlearntoavoidcollisions
+quickly. And samples with a larger reward value indicates Algorithm1ImprovedDRQNforUAVpathplanning
+that the UAV is closer to the target point. The above two Input:observationϕ
+t
+types of samples can be used as important sample to train Output:actiona t
+network. If only two types of samples are utilized for train- EpisodesM e ,StepsperepisodeN e
+ing,insufficientsamplediversitymaycausethealgorithmto Initialization parameters: current value network
+fall into a local optimal solution. Furthermore, the absolute weightθ i ,targetvaluenetworkweightθ(cid:48) i
+value of the reward for the two samples is large, which Mark=0
+may make it difficult for the algorithm to converge. There- REPEAT
+fore, it is necessary to establish a normal memory pool for M e =M e −1.
+training[40]. REPEAT
+Basedontheaboveanalysis,thisarticleproposesanAdap- N e =N e −1.
+tiveSampling(ADSA)mechanism.Firstofall,weconstruct Put ϕ into the current value network to get
+t
+a memory pool I to store important samples and a memory Q (cid:0)ϕ t ,a|θ i (cid:1) .
+poolDtostorenormalsamples,asfollows: Calculatetherewardrs t .
+1) Saving all samples of the p round into er p = Chooseactiona t accordingto(18).
+{ϕ 0 ,a 0 ,r 0 ,ϕ 1 ,a 1 ,r 1 ,··· ,ϕ N }. Executeactiona t togetanewstateϕ t+1 andcalculate
+2) Iftheroundends,calculatingtheroundaveragereward therewardr t .
+valueRa p ve: Store(ϕ t ,a t ,r t ,ϕ t+1 )intoer p .
+IFtheroundends:
+Ra p ve = N 1 −1 (cid:88)N i= − 0 1 r i (19) C IF al R c a u v l e at < eR R a m a v i e v n e a : ndRa p ve.
+min p
+3) Finding the minimum value of average reward value er p → I.
+Rave in the memory pool I. The memory pool I is Else:
+min
+updatedbystrategyµ(er p ): er p → D.
+IFv<τ:
+(cid:40)
+µ(er )= er p →D Ra p ve <Ra m v i e n (20) SampleaminibatchfromA.
+p er →I Rave ≥Rave Mark =1.
+p p min
+IFMark=0:
+4) Repeating1)-3).
+SampleaminibatchfromD.
+Secondly,thealgorithmadaptivelysamplesfromtwomem-
+Else:
+ory pools based on round failure rate. It indicates that the Mark =0.
+current action selection policy is incorrect when the round Updatetheweightθ accordingto(8)-(10).
+i
+failure rate is high. Valuable samples from the important Updatethetargetnetworkpercertainstepsθ(cid:48) ←θ .
+i i
+memory pool should be taken to quickly correct the policy. t ←t +1.
+Thespecificmethodisasfollows: UNTILN =0
+e
+1) Iftheroundends,goto2),otherwisegoto4). UNTILM =0
+e
+2) Setting a fixed sampling probability τ ∈ [0,1], ran-
+domly generating a number v ∈ [0,1]. when v < τ,
+goto3),otherwisegoto4). IV. SIMULATIONEXPERIMENTANDRESULT
+3) Randomly selecting m samples from the important A. EXPERIMENTALSETTING
+memorypoolI. Thealgorithmneedsalotofinteractionwiththeenvironment
+4) Randomlyselectingmsamplesfromthenormalmem- tolearnaneffectivecollisionavoidancepolicy.Thelearning
+orypoolD. cost is very high in a real environment, so we construct a
+TheADSAmethodhasthetwoadvantages.Thecalculation simulationenvironmentaccordingto(1).Assumingthatthe
+amount is very small, and there are only average calcula- mission environment area is 500 km∗500 km∗200 m. The
+tion and minimum calculation for each round. The method starting point is (0 km, 300 km, 30 m), and the target point
+adaptively selects important samples and normal samples is(500km,200km,30m).
+according to the failure rate of the round, which helps to We have done a lot of experiments on parameter setting.
+correctthewrongstrategy. Differentparametersaretestedfortheirimpactontheperfor-
+Thisarticledesignsarewardfunctionbasedonthemission manceoftheRQ_ADSA_DRQNalgorithm.Thenumberof
+environmentandthecharacteristicsoftheUAV.Aimingatthe trainingstepsis100,000,andtheevaluationindicatorsisthe
+24890 VOLUME9,2021
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+length of observation sequence is L=7. The parameters of
+the current value network are copied to the target network
+every C=800 steps. The neuron number of LSTM is 512.
+Theweightcoefficientsinrewardfunctionaresetasfollows:
+ω = −0.00125,ω = 0.15,ω = 0.0015,ω = 1. The
+1 2 3 4
+cruise altitude z =10 to ensure the flight height is as low
+0
+as possible. There are 100 episodes in training to compare
+theperformanceofdifferentalgorithms,andeachepisodehas
+2000steps.
+B. COMPARISONOFALGORITHMPERFORMANCEINA
+STATICSCENARIO
+FIGURE7. ImprovedDRQNforUAVpathplanningstructure. In this article, DQN, DRQN, RQ_DRQN, ADSA_DRQN
+and RQ_ADSA_DRQN are selected for comparison. The
+TABLE1. Theinfluenceofparametervaluesonalgorithmperformance. DQN has three convolution layers and two fully connected
+layers.DRQNreplacesafullyconnectedlayerofDQNwith
+LSTM.RQ_DRQNutilizesRQmethodtoaccelerateDRQN
+learning. ADSA_DRQN uses adaptive sampling to increase
+the stability of DRQN. The two improved methods are all
+usedforDRQNisRQ_ADSA_DRQN.Weassesstheperfor-
+mance of algorithms based on five indicators: The average
+reward value in an episode avg_rewards, the average state-
+action value in an episode avg_qs, the rounds in an episode
+num_round, the number of times to reach the destination
+num_success, and the average loss of model in an episode
+avg_loss.
+avg_rewards is the average of all reward values in an
+episode,anditisgivenby:
+avg_rewards=
+1 (cid:88)Ne
+r (21)
+t
+N
+e
+t=1
+avg_qsistheaverageofallQ(ϕ,a)inanepisode,anditis
+givenby:
+avg_qs=
+1 (cid:88)Ne 1 (cid:88)M
+Q(ϕ ,a) (22)
+t i
+N
+e
+t=1 M i=1
+whereN isthenumberofstepsinanepisode.M isthesize
+e
+ofactionspace.
+1) THEAVERAGEREWARDavg_rewards
+The goal of reinforcement learning is to learn a policy that
+enablestheagenttoobtainthemaximumlong-termaverage
+totalnumberoftimesthattheUAVreachesthetargetpoint. reward. Therefore, the average reward is a crucial indicator
+TheresultsareshowninTable1.Itcanbeseenthatlearning for evaluating various algorithms. As shown in the Fig. 8,
+rate and the reward function have a relatively large impact theaveragerewardcurveisvolatileandnoisy,becausesmall
+on the result, and some parameters have little impact on changesinnetworkweightscancausethechoiceofdifferent
+theresults,suchastheexperiencelibrarysizeV.According actions.Algorithmswouldbeanalyzedbasedonthevalueof
+to the test results, the parameters are set as follows: The reward value, convergence stability and convergence speed.
+initial learning rate α is 0.001, multiplied by the learning It’sclearlyseenthattheaveragerewardofDQNisfarworse
+ratedecay0.9every5000steps.Theexploratoryfactorε of than other algorithms, because DQN cannot remember pre-
+actionselectionisinitially0.5,anddecreaseslinearlyto0.001 vioushistoricalexperienceinformationandmakesdecisions
+after70,000steps.BecausetheUAVwouldnotfallintolocal based only on its perception of the current environment.
+traps and reach the target point after training 70000 steps. Otherfouralgorithmscangethighrewards,becauseLSTM
+The sampling probability τ is 0.4. The size of the normal canremembermoreinformationaboutthelocalstructureof
+memory pool is V = 8000, while the size of important the environment based on their historical observations. The
+memory pool is U = 30. The batchsize is m=32. The average reward of RQ_ADSA_DRQN and ADSA_DRQN
+VOLUME9,2021 24891
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+FIGURE8. Theaveragerewardinastaticscenario. FIGURE9. Theaverageactionvalueinastaticscenario.
+canbasicallyreacharelativelystablevalueafter70episodes, valuer +γmaxQ (cid:0)ϕ t+1 ,a t+1 |θ i (cid:48)(cid:1) islikelytobegreaterthan
+whileDRQNandRQ_DRQNareunstableatthelaterstage the current value Q(ϕ t ,a t |θ i ). Therefore, a large loss value
+oftraining.Instabilityanddivergenceareinherentdisadvan- causesthecurrentvalueQ(ϕ t ,a t |θ i )toincrease.Asshownin
+tagesofreinforcementlearning,asthedistributionofsample Fig.10,thelossofADSA_DRQNisalwaysgreaterthanthat
+data in training is always changing. The ADSA mechanism of RQ_ADSA_DRQN in 40-60 episodes, which causes the
+proposed in this article can effectively improve the stability state-actionvalueofADSA_DRQNtocontinuetoincrease.
+ofthealgorithm.Iftheroundfailurerateishigher,theprob- The state-action value of RQ_ADSA_DRQN is larger than
+ability of sampling from important memory pool is higher. that of RQ_DRQN at the beginning of training. Accord-
+The update frequency of important memory pool is slow, ing to (18), the first item increases while the second item
+soitssampledistributionisrelativelyfixed.Theresultshows decreases,whichisequivalenttoreducingtheinfluenceofrs t .
+that adaptive sampling mechanism can quickly correct the ItexplainsthattheconvergencespeedofRQ_ADSA_DRQN
+wrong strategy and effectively improve the stability of the islowerthanRQ_DRQN.
+algorithm.TheADSAmechanismalsohastheeffectofaccel-
+erating convergence. The convergence speed of RQ_DRQN 3) THEAVERAGELOSSavg_loss
+isthefastestinallalgorithms.TheRQmethodintroducesthe AsshowninFig.10,ThelossvalueofRQ_DRQNislarger
+reward set rs to correct Q(ϕ,a|θ), which can compensate than that of other models in the initial stage of training.
+t i
+fortheinaccurateoutputoftheneuralnetworkintheinitial Because RQ method chooses an action by considering two
+stageoftraining.ItisworthnotingthatRQ_ADSA_DRQN factors: Q(ϕ,a|θ) and rs . For example, Q(ϕ,a |θ) is
+i t 1 i
+alsoadoptstheRQmethod,butitsconvergencespeedislower bigger than Q(ϕ,a |θ), but the reward of action a is
+2 i 1
+thanRQ_DRQN.Thereasoncanbefoundbyanalyzingthe bigger than that of action a . It is possible that the final
+2
+averageactionvalueavg_qsinthefollowing. choice of action is a , which would cause large loss when
+2
+Q(ϕ,a |θ) is updated. The large loss value can produce
+2 i
+2) THEAVERAGESTATE-ACTIONVALUEavg_qs a large gradient, which accelerates the updating speed of
+avg_qs is a more stable indicator compared with the parameters. The learning speed of RQ_DRQN is much
+avg_rewards. As shown in Fig. 9, the performance of DQN fasterthanothermodelsatthebeginning.However,thesharp
+is still the worst in all models from the view of increasing increaseoflossvalueat90episodesshowsthatthestability
+speed and absolute value. According to Bellman formula, of the algorithm is insufficient. It is difficult to judge the
+the update of state-action value is closely related to the convergenceofADSA_DRQNandRQ_ADSA_DRQNfrom
+reward value. The reward of DQN is always much smaller the trend of the average reward value, but it can be clearly
+than that of other models, which also leads to the smaller seen from the avg_loss that the convergence of the latter is
+avg_qs. Because the reward value of the samples in the better than the former. The performance of DQN is still the
+importantmemorypoolishigherthanthatofnormalsample, worst,butthelossvaluegraduallydecreasesfrom60episode,
+the average action values of the two algorithms using the indicatingaconvergencetrend.
+adaptivesamplingmechanismaregreaterthanthoseofother
+algorithms. The state-action value of ADSA_DRQN is the 4) THENUMBEROFROUNDSnum_round
+largest, which does not mean that this algorithm is superior ItreflectstheabilityofUAVtoavoidobstacles.Asshownin
+to other algorithms. The reward value is basically positive Fig. 11, DQN can learn an effective policy to avoid obsta-
+except for the collision reward, which means that the target cles, but lack of temporal information restricts the ability
+24892 VOLUME9,2021
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+FIGURE10. Theaveragelossinastaticscenario. FIGURE12. Thenumberoftimestoreachthetargetpointinastatic
+scenario.
+arrivethetargetpointfrom50episodes,whichindicatesthat
+RQ_DRQNlearnsagoodobstacleavoidancestrategyrather
+than a strategy to reach the target point. The convergence
+speed of RQ_DRQN is the fastest. If the instability phe-
+nomenonattheendoftrainingisignored,itcanbesaidthat
+itisthebestperformingalgorithm.Butnum_successshows
+thatthisalgorithmhasamajorflaw.After100episodes,the
+number of times to reach the target point exceeds 200 for
+ADSA_DRQN.ThelearningspeedofRQ_ADSA_DRQNis
+second only to RQ_DRQN. The slope is much larger than
+the other four algorithms. The number of times to reach
+the target point exceeds 400, which is better than other
+algorithms.
+Thefivealgorithmsarecomparedbytheaboveindicators.
+FIGURE11. Thenumberofroundsinastaticscenario. TheconvergencespeedofRQ_ADSA_DRQNislowerthan
+that of RQ_DRQN, and other indicators are far superior to
+thesefouralgorithms.TheperformanceofADSA_DRQNis
+of obstacle avoidance. Although four algorithms based on second only to RQ_ADSA_DRQN. RQ_DRQN has a very
+DRQN have different convergence speeds, they can learn a fastlearningspeedandlearnsgoodobstacleavoidancepolicy.
+goodobstacleavoidancepolicy. However, its success rate is relatively low, and there are
+problems of instability and divergence in the final stage of
+5) NUMBEROFTIMESTOREACHTARGETPOINT training.Althoughtheindicatorsarenotasgoodastheabove
+num_success threeimprovedalgorithms,DRQNalsocansuccessfullyplan
+The most important requirement for path planning is to theavailablepath.DQNstillcan’treachthetargetpointafter
+reachthetargetpoint.AsshowninFig.12,thenum_success 100episodestraining,whichistheworstperformanceamong
+reflects the cumulative number of times to reach the target allalgorithms.
+point. The slope of curve indicates the number of times to In this article, we choose the best performing algorithm
+reach the target point per episode, reflecting the stability of RQ_ADSA_DRQN to be used for path planning in a fixed
+the algorithm convergence. DQN never reaches the target and large-scale scenario, and the result of path planning is
+point throughout the training process, which indicates that showninFig.13.Whenthereisanobstacleinfront,theUAV
+this algorithm is not suitable for path planning in a large- turnstofindarelativelylowsaddlebetweenthetwoobstacles
+scaleenvironment.TheDRQNreachesthetargetpointat70 andclimbsoverit.Fromthetopographicmap,wecanseethat
+episodes,indicatingthatthelearningofalgorithmisrelatively the UAV needs to climb to cross three saddles. If there are
+slow.Thesmallslopevalueindicatesthatthealgorithmcan- noobstaclesahead,theUAVwoulddroptoaloweraltitude
+notlearnthepolicytoreachthetargetpointwell.RQ_DRQN because a high penalty term is set in the reward function.
+startstoarrivethetargetpointat20episodes,whichindicates When the UAV detects an obstacle in front, it tends to take
+thatthelearningefficiencyisrelativelyhigh.TheUAVcannot a climbing action instead of a turning action to avoid the
+VOLUME9,2021 24893
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+FIGURE14. InfluenceofdifferentkvaluesonRQ_ADSA_DRQN.
+FIGURE13. PathplanningbyRQ_ADSA_DRQNinastaticscenario. FIGURE15. Thedifferentthree-dimensionaltopographicmaps.
+TABLE2. TheperformanceofDQN,DRQN,RQ_ADSA_DRQNindifferent
+three-dimensionalmaps.
+obstacle. This phenomenon is closely related to the setting
+oftherewardfunction.
+Thesizeofprobabilisticsafetypointskisaveryimportant
+parameter. The larger the k value means the more envi-
+ronmental information the algorithm obtains, which is the-
+oretically beneficial to UAV obstacle avoidance. However,
+a large k value brings about an increase in the amount of
+calculation.Therefore,thechoiceofkvalueneedstoconsider
+the balance of efficiency and profit. After 100,000 train-
+ing steps, we choose the number of successes to reach the
+target point as the evaluation of the impact of different k twoalgorithmsintermsofaveragerewardvalueandtimesof
+values. As shown in Fig. 14, we can clearly find that the reachingthetargetpoint.
+performance of the algorithm increases as the value of k ThestartingpointofUAVisfixedintheabovesimulation
+increases.Theperformanceofthealgorithmisobviouslythe test. We would evaluate the performance of the three algo-
+bestatk =30∗30inthelaterstageoftraining.Thealgorithm rithmsatdifferentstartingpoints.Thereare100000training
+performs poorly when k is less than 10∗10. We have found steps, and the starting point [X S ,Y S ,Z S ] of UAV is set ran-
+thepossiblereasonsbyanalyzingtheUAVmotionandinput domly. When the height of the random starting point is less
+sequence state length. The number of actions that can be thantheheightofthethree-dimensionalterrain,therandom
+executedis11,whichthedistanceofx-directionmovementof startingpointisgeneratedagain.
+9actionsis4km.Thelengthofthestatesequenceis7.Then
+X ∈[0,100],Y ∈[200,300],Z ∈[20,60]
+S S S
+we can easily conclude that the distance in the x-direction
+of the state is likely to be 28 (4 ∗ 7) km. If the k value Theperformanceofthethreealgorithmsatdifferentstart-
+exceedsthescaleoftheinputstate,itwouldcauseinforma- ing points in the ENV 1 is shown in Table 3. Because
+tionredundancy,whichisnotconducivetothelearningofthe the starting point of random generation is closer to the tar-
+algorithm. get point, the three algorithms obtain higher reward values.
+As shown in the Fig. 15, there are two different three- RQ_ADSA_DRQNisstillthebestperformingalgorithm.
+dimensionaltopographicmaps.After100000trainingsteps, Weproposeanewactionselectionstrategythatcombines
+the performance of the three algorithms is shown in the theQvalueandcurrentrewardvalue,whereg∈(0,1)controls
+Table2. RQ_ ADSA_ DRQN is much better than the other theimpactofthecurrentrewardvalueontheactionselection.
+24894 VOLUME9,2021
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+TABLE3. TheperformanceofDQN,DRQN,RQ_ADSA_DRQNatdifferent
+startingpoints.
+TABLE4. TheperformanceofRQ_ADSA_DRQNatdifferentgvalues.
+TABLE5. TheperformanceofRQ_ADSA_DRQNatdifferentτvalues.
+FIGURE16. Theaveragerewardindifferentscenarios.
+informationbecomesinaccurateastheenvironmentchanges
+randomly. DQN only needs to pay attention to the obstacle
+information currently perceived. In addition, few obstacles
+Thevalueinthesecondtermofthe(18)tendstozeroastheQ are beneficial to DQN for higher reward compared to the
+valueincreases,andthegvaluecontrolstherateofchange. staticcomplexscenario.AsdepictedinFig.17,adaptivesam-
+There are 100000 training steps for RQ_ADSA _DRQN in plingexhibitsignificantimprovementsoverotheralgorithms.
+theENV2.Table4showstheeffectofdifferentgvalueson RQ_ADSA_DRQNandADSA_DRQNcanstablyavoidall
+theperformanceoftheRQ_ADSA_DRQNalgorithminthe obstacles in the late training period. As shown in Fig.18,
+ENV2.Theaveragerewardofthealgorithmisthelowestas RQ_DRQN reaches the target point the most times, but it
+g=0.7.Therefore,thegvalueneedstoconsiderthebalance doesn’tlearnagoodobstacleavoidancestrategy.Bycontrast,
+betweenthecurrentrewardandthelong-termreward. twoalgorithmsusingadaptivesamplinghavelearnedagood
+If the round ends, the ADSA method randomly would obstacleavoidancestrategy,butthesuccessrateisnothigh.
+generate a number v ∈ [0,1]. If v < τ, the ADSA method Wethinkthereasoncomesfromtwoaspects.Firstofall,since
+would sample from the important pool. The probability of obstaclesaresetrandomlyintheenvironment,thedifficulty
+the algorithm sampling from the important pool increases of the UAV reaching the target point is also relatively ran-
+with the increase of τ. There are 100000 training steps for dom. Secondly, it is still possible for the UAV to obtain a
+RQ_ADSA _DRQN in the ENV 2. As shown in Table 5, large reward value if it fails to reach the target point. Even
+alargeτ valueishelpfultoimprovetheperformanceofthe compared with the rewards of mission success, the reward
+algorithm. valueapproachingthetargetpointisnotsmall.Tosolvethe
+above problem, we try to reduce the reward related to the
+distancetothetarget,buttheexperimentalresultsshowthat
+C. COMPARISONOFALGORITHMPERFORMANCEINA
+thelearningefficiencybecomesveryslow.Wehavetochoose
+DYNAMICSCENARIO
+a large reward related to the target distance. Therefore, the
+Wetrainfivealgorithmsindifferentscenarios.Therearefour
+strategy learned by ADSA_DRQN is to approach the target
+obstaclesintheenvironment,whichthey-directionposition
+withoutcollision.
+ofobstaclerandomlysampleswitharangeof[200,400]per
+Tovalidatetheeffectivenessofourproposedapproaches,
+round.Intheabovecomparisonofthealgorithms,itisfound
+a well-trained RQ_ADSA_DRQN is dispatched to execute
+that the following three indicators are more discriminative:
+path planning in a dynamic scenario, and the result of path
+avg_rewards,num_round,num_success.
+planningisshowninFig.19.Thepositionsofthefourobsta-
+As illustrated in Fig. 16, two algorithms based on adap-
+cles in the environment are always changing with the time
+tive sampling can effectively increase the reward value.
+steps. There are four moving obstacles in the environment,
+RQ_ADSA_DRQNhasthebestperformanceintermsofcon-
+andtheresultsshowthattheUAVcaneasilyavoidobstacles.
+vergencespeed,stability,andabsolutevalue.RQ_DRQNhas
+obviousinstabilityasitappearsinthedynamicenvironment.
+It is important to note that the average reward of DQN is D. COMPARISONOFALGORITHMPERFORMANCEINAN
+greaterthanthatofDRQN.Themainreasonisthattheenvi- INDOORSCENARIO
+ronment changes randomly every round. Perception of the In order to evaluate the practical application value of our
+environment constructed by extracting historical trajectory approach, we build a simulation indoor scenario based on
+VOLUME9,2021 24895
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+FIGURE17. Thenumberofroundsindifferentscenarios.
+FIGURE18. Thenumberoftimestoreachthetargetpointindifferent
+scenarios.
+V-REP which is more similar to the real environment.
+As shown in Fig. 20, the new simulation scenario is basi-
+cally the same as the real indoor environment, including
+sofa, wardrobe, shelf, pedestrian, window, etc. The UAV
+starts from the left side, avoiding the wardrobe, shelf and
+other obstacles, passes through the window to the right
+side.
+ACTIONSPACE:TheUAVcangetabundantsurrounding
+informationinthescenario,andtheforwarddistanceofeach FIGURE19. PathplanningbyRQ_ADSA_DRQNinadynamicscenario,the
+step is set relatively small. Therefore, the indoor simulation y-coordinateoftheobstaclechangeswithtime.
+scenariodoesnotrequireastronghorizontalmaneuvercapa-
+bility of the UAV. There are 9 actions in the action space by the range sensor. The input image of vision sensor is
+without 63 degrees of horizontal turning, compared with 256 ∗ 256 ∗ 3, and we convert the color image into a gray
+the actions in the previous three-dimensional topographic image.Becausecolorinformationhaslittleeffectonobstacle
+map. avoidance decision-making, and the gray image compared
+INPUTSTATE:ThestatusinputoftheUAVincludesvision withthecolorimageislessdifferentbetweentherealandsim-
+sensorandrangesensortoobtainenvironmentalinformation ulated environments. The range sensor obtains the distance
+in front of the movement. As shown in Fig. 21, the green informationof16pointsinfrontoftheUAV.Inaddition,the
+boxrepresentstheimageobtainedbythevisionsensor,and UAValsoneedstoobtainpositioninformationrelativetothe
+the red points represent the distance information obtained targetpoint.
+24896 VOLUME9,2021
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+FIGURE20. TheindoorsimulationscenariobasedonV-REP.
+FIGURE22. Theaveragerewardinanindoorscenario.
+FIGURE21. TheUAVisequippedwiththerangesensorandthevision
+FIGURE23. Thenumberofroundsinanindoorscenario.
+sensor.
+Thereare100episodesintrainingtocomparetheperfor-
+mance of different algorithms, and each episode has 5000
+steps. We choose three more discriminative indicators to
+evaluate the performance of different algorithms, including:
+avg_rewards,num_round,num_success.
+AsshowninFig.22,theperformanceofDQNisfarbetter
+thanthatofDRQN,andevenpartiallyexceedstheimproved
+algorithmforDRQN.BecausetheUAVcaneasilyreachthe
+destination as long as successfully avoiding obstacles. The
+UAV needs to pay attention to the current obstacles instead
+of remembering the previous states and actions. The indoor
+obstacleavoidancescenariocanbedescribedasMDPrather
+thanPOMDP.ThereisasimilarphenomenoninAtari’sgame.
+DRQN performs worse than DQN for Beam Rider, and we
+don’t expect DRQN to outperform DQN for MDPs [24]. FIGURE24. Thenumberoftimestoreachthetargetpointinanindoor
+scenario.
+The improved methods we propose can increase the reward
+value compared with DRQN. The convergence stability of
+ADSA_DRQNisbetterthanotheralgorithms,whichfurther thehighestrewardvalueintheearlytrainingperiod,butitis
+verifies the effectiveness of the adaptive sampling mecha- unstablein60-80rounds.Itisspeculatedthattheinstability
+nism.RQ_ADSA_DRQNhasthefastestlearningspeedand caused by RQ method, and similar situation occurs in both
+VOLUME9,2021 24897
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+convergencespeedofthealgorithm,andADSAmechanism
+can improve the speed and stability of convergence. It is
+verified that our method has effective obstacle avoidance
+abilityinadynamicenvironment.
+ItisworthnotingthattheperformanceofDQNandDRQN
+are not the same in the two simulation environments. The
+performance of DRQN in the three-dimensional complex
+environmentismuchbetterthanthatofDQN,andtheoppo-
+siteresultsappearintheV-REPsimulationenvironment.For
+thePOMDPmodel,DRQNperformsbetterthanDQN.The
+methodweproposedcangreatlyimprovetheperformanceof
+DRQNforMDPmodel.
+The input information of the algorithm contains the rela-
+tive location information of the UAV and the nearby envi-
+ronment information detected by the sensor. Simulation
+results show that the algorithm can ensure UAV to avoid
+obstacles successfully in dynamic and complex environ-
+ment. This research proves that UAV only rely on limited
+range sensors and image information to complete obsta-
+cle avoidance tasks in indoor environments with many
+FIGURE25. Indoorunknowntestscenarios. obstacles. Deep reinforcement learning can complete the
+fusion of various sensor information and make reason-
+able decisions. The method we propose can improve the
+thestaticanddynamicthree-dimensionalmaps.Asshownin performance of existing algorithms, which has application
+Fig. 23, The small number of rounds shows that the agent value for the development of autonomous driving technol-
+canstablyavoidobstacles,andADSA_DRQNstillperforms ogy. Therefore, the research in this article has practical
+well in stability. As shown in Fig. 24, The number of times significance.
+thatDRQNreachesthetargetpointis0,whichisfarbehind Reinforcement learning plays an important role in
+DQN.TheperformanceofRQ_ADSA_DRQNevenexceeds autonomous decision of UAV and automobile. It is an
+DQN. The two methods we propose greatly improve the importantresearchdirectionthatreinforcementlearninguses
+performanceoftheDRQNalgorithm. multi-sensor to achieve more reasonable decision-making.
+Ourmethodreliesonlocalinformationratherthanglobal Differenttypesofsensorshavedifferentinformationredun-
+information. The obstacle avoidance ability of the algo- dancy.Itisapotentialresearchhotspottomakeuseofatten-
+rithm is tested in two new unknown scenarios. As shown tion mechanism to process sensor information in different
+in Fig.25, the UAV can successfully avoid obstacles in channels. In addition, the reliability of decision-making in
+newenvironment.Theflighttrajectoryisdrawnwithpurple reinforcement learning method is an urgent problem to be
+and blue lines respectively. The results show that UAV can solved. Some traditional planning methods can be used as
+successfully complete obstacle avoidance task in unknown auxiliarydecision-makingtoimprovethereliabilityofrein-
+environment. forcementlearning.
+V. CONCLUSION REFERENCES
+Thisarticledevelopsadeepreinforcementlearningalgorithm
+[1] L. D. Tran, C. D. Cross, M. A. Motter, J. H. Neilan, G. Qualls,
+fortheUAVpathplanninginthecomplexanddynamicenvi- P.M.Rothhaar,A.Trujillo,andB.D.Allen,‘‘Reinforcementlearningwith
+ronment, and proposes two methods to speed up algorithm autonomoussmallunmannedaerialvehiclesclutteredenvironments,’’in
+Proc.AIAAAviationTechnol.,Integr.,Oper.Conf.,Dallas,TX,USA,2015,
+learning.Firstofall,weproposeaRQmethodtoaddressthe
+p.2899.[Online].Available:https://arc.aiaa.org/doi/pdf/10.2514/6.2015-
+problemofinaccuratenetworkpredictionattheinitialstage 2899
+oftraining,whichcanreducetheblindnessofactionselection [2] S.Scherer,J.Rehder,S.Achar,H.Cover,A.Chambers,S.Nuske,and
+S.Singh,‘‘Rivermappingfromaflyingrobot:Stateestimation,riverdetec-
+andtheprobabilityofcollision.Secondly,weproposeasim-
+tion,andobstaclemapping,’’Auto.Robots,vol.33,nos.1–2,pp.189–214,
+pleandeffectiveadaptivesamplingmechanism.ItConstructs Aug.2012.
+twomemorypoolsbasedontheaverageroundrewardvalue, [3] B.Zhang,Z.Mao,W.Liu,andJ.Liu,‘‘Geometricreinforcementlearn-
+and then adaptively samples based on the failure rate with ing for path planning of UAVs,’’ J. Intell. Robot. Syst., vol. 77, no. 2,
+pp.391–409,Feb.2015.
+lowcomputationalcomplexity.Tovalidatetheeffectiveness
+[4] G. Nannicini, D. Delling, D. Schultes, and L. Liberti, ‘‘Bidirectional
+ofourmethods,webuiltathree-dimensionalmapsimulation A*searchontime-dependentroadnetworks,’’Networks,vol.59,no.2,
+environment based on (1) and a more realistic indoor simu- pp.240–251,Mar.2012.
+[5] R.A.ConnandM.Kam,‘‘Onthemoving-obstaclepath-planningalgo-
+lationenvironmentbasedontheV-REPsimulationplatform.
+rithmofshih,lee,andgruver,’’IEEETrans.Syst.,Man,Cybern.B.Cybern.,
+TheresultsshowthattheRQmethodcangreatlyimprovethe vol.27,no.1,pp.136–138,Feb.1997.
+24898 VOLUME9,2021
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+[6] M. Gyu Park, J. Hyun Jeon, and M. Cheol Lee, ‘‘Obstacle avoidance [28] L.Tai,G.Paolo,andM.Liu,‘‘Virtual-to-realdeepreinforcementlearn-
+formobilerobotsusingartificialpotentialfieldapproachwithsimulated ing: Continuous control of mobile robots for mapless navigation,’’ in
+annealing,’’inProc.ISIE.IEEEInt.Symp.Ind.Electron.Process.,Pusan, Proc.IEEE/RSJInt.Conf.Intell.RobotsSyst.(IROS),ShanghaiChina,
+SouthKorea,2001,pp.1530–1535. Sep.2017,pp.1529–1538.
+[7] F.Aurenhammer,‘‘Voronoidiagrams—Asurveyofafundamentalgeo- [29] D.Wierstra,A.Foerster,J.Peters,andJ.Schmidhuber,‘‘Solvingdeep
+metricdatastructure,’’ACMComput.Surv.,vol.23,no.3,pp.345–405, memoryPOMDPswithrecurrentpolicygradients,’’inProc.Int.Conf.
+Sep.1991. Artif.NeuralNetw.,Porto,Portugal,2007,pp.697–706.
+[8] X.Meng,Y.Zhao,andQ.Xue,‘‘Applicationofgeneticalgorithminpath [30] C.Wang,J.Wang,Y.Shen,andX.Zhang,‘‘Autonomousnavigationof
+planning,’’Comp.Eng.,vol.34,no.16,pp.215–220,2008. UAVsinlarge-scalecomplexenvironments:Adeepreinforcementlearning
+[9] Y.Chen,J.Yu,Y.Mei,S.Zhang,X.Ai,andZ.Jia,‘‘Trajectoryoptimiza- approach,’’ IEEE Trans. Veh. Technol., vol. 68, no. 3, pp.2124–2136,
+tionofmultiplequad-rotorUAVsincollaborativeassemblingtask,’’Chin. Mar.2019.
+J.Aeronaut.,vol.29,no.1,pp.184–201,Feb.2016. [31] J.Q.Cui,S.Lai,X.Dong,andB.M.Chen,‘‘Autonomousnavigationof
+[10] C.Zhang,Z.Zhen,D.Wang,andM.Li,‘‘UAVpathplanningmethodbased UAVinfoliageenvironment,’’J.Intell.RoboticSyst.,vol.84,nos.1–4,
+onantcolonyoptimization,’’inProc.Chin.ControlDecis.Conf.,Xuzhou, pp.259–276,Dec.2016.
+China,2010,pp.3790–3792. [32] J. Li, Y. Bi, M. Lan, H. Qin, M. Shan, F. Lin, and B. M. Chen,
+[11] M.Chen,Q.Wu,andC.Jiang,‘‘Amodifiedantoptimizationalgorithmfor ‘‘Realtime simultaneous localization and mapping for UAV: A sur-
+pathplanningofUCAV,’’ApplSoftComput.,vol.8,no.4,pp.1712–1718, vey,’’ in Proc. Int. Micro Air Vehicle Conf. Competition (IMAV),
+2008. 2016,p.237.[Online].Available:https://pdfs.sema-nticscholar.org/e6fb/
+[12] D. Karaboga and B. Basturk, ‘‘A powerful and efficient algorithm for 502ca4dda8fef8e4bfe075396281f326e2dd.pdf
+numericalfunctionoptimization:Artificialbeecolony(ABC)algorithm,’’ [33] C. Fu, M. A. Olivares-Mendez, R. Suarez-Fernandez, and P. Campoy,
+J.GlobalOptim.,vol.39,no.3,pp.459–471,Oct.2007. ‘‘Monocularvisual-inertialSLAM-basedcollisionavoidancestrategyfor
+[13] Y.Liu,X.Zhang,Y.Zhang,andX.Guan,‘‘Collisionfree4Dpathplanning fail-safe UAV using fuzzy logic controllers,’’ J. Intell. Robotic Syst.,
+formultipleUAVsbasedonspatialrefinedvotingmechanismandPSO vol.73,nos.1–4,pp.513–533,Jan.2014.
+approach,’’Chin.J.Aeronaut.,vol.32,no.6,pp.1504–1519,Jun.2019. [34] N.Gageik,P.Benz,andS.Montenegro,‘‘Obstacledetectionandcollision
+[14] Y.HaoandZ.Zhao,‘‘Real-timeobstacleavoidancemethodbasedonpolar avoidanceforaUAVwithcomplementarylow-costsensors,’’IEEEAccess,
+coordination particle swarm optimization in dynamic environment,’’ in vol.3,pp.599–609,2015.
+Proc.Conf.Ind.Electron.Appl.,Harbin,China,2007,pp.1612–1617. [35] S.HochreiterandJ.Schmidhuber,‘‘Longshort-termmemory,’’Neural
+[15] H.Duan,Y.Yu,X.Zhang,andS.Shao,‘‘Three-dimensionpathplanning Comput.,vol.9,no.8,pp.1735–1780,1997.
+forUCAVusinghybridmeta-heuristicACO-DEalgorithm,’’Simul.Model. [36] V.Mnih,K.Kavukcuoglu,D.Silver,A.A.Rusu,andJ.Veness,‘‘Human-
+Pract.Theory,vol.18,no.8,pp.1104–1115,Sep.2010. level control through deep reinforcement learning,’’ Nature, vol. 518,
+[16] M. Darrah, W. Niland, and B. Stolarik, ‘‘Increasing UAV task assign- pp.529–533,Feb.2015.
+mentperformancethroughparallelizedgeneticalgorithms,’’inProc.AIAA [37] Y.Song,Y.-B.Li,C.-H.Li,andG.-F.Zhang,‘‘Anefficientinitialization
+InfotechAerosp.Conf.Exhib.,May2007,pp.7–10. approachofQ-learningformobilerobots,’’Int.J.Control,Autom.Syst.,
+[17] Q. Yang and S.-J. Yoo, ‘‘Optimal UAV path planning: Sensing data vol.10,no.1,pp.166–172,Feb.2012.
+acquisitionoverIoTsensornetworksusingmulti-objectivebio-inspired [38] M.E.TaylorandP.Stone,‘‘Transferlearningforreinforcementlearn-
+algorithms,’’IEEEAccess,vol.6,pp.13671–13684,2018. ingdomains:Asurvey,’’J.Mach.Learn.Res.,vol.10,pp.1633–1685,
+[18] S.Garrido,M.Malfaz,andD.Blanco,‘‘Applicationofthefastmarching Jul.2009.
+method for outdoor motion planning in robotics,’’ Robot. Auto. Syst., [39] M. Deisenroth and C. Rasmussen, ‘‘PILCO: A model-based and data-
+vol.61,no.2,pp.106–114,Feb.2013. efficientapproachtopolicysearch,’’inProc.28thInt.Conf.Mach.Learn.
+[19] V.González,C.A.Monje,L.Moreno,andC.Balaguer,‘‘UAVsmission (ICML),Bellevue,WA,USA,2011,pp.465–472.
+planningwithflightlevelconstraintusingfastmarchingsquaremethod,’’ [40] L.Lin,‘‘Self-improvementbasedonreinforcementlearning,’’Planning
+Robot.Auton.Syst.,vol.94,pp.162–171,Apr.2017. Teaching.Mach.Learn.Proc.,vol.6,pp.323–327,Sep.1991.
+[20] D. Silver, A. Huang, C. J. Maddison, A. Guez, L. Sifre,
+G.vandenDriessche,J.Schrittwieser,I.Antonoglou,V.Panneershelvam,
+M. Lanctot, S. Dieleman, D. Grewe, J. Nham, N. Kalchbrenner,
+I.Sutskever, T. Lillicrap, M. Leach, K. Kavukcuoglu, T. Graepel, and
+D.Hassabis,‘‘Masteringthegameofgowithdeepneuralnetworksand
+treesearch,’’Nature,vol.529,no.7587,pp.484–489,Jan.2016.
+RONGLEI XIE receivedtheB.Eng.degreefrom
+[21] S. Lange and M. Riedmiller, ‘‘Deep auto-encoder neural networks in
+Northwestern Polytechnical University, in 2015.
+reinforcementlearning,’’inProc.Int.JointConf.NeuralNetw.(IJCNN),
+HeiscurrentlypursuingthePh.D.degreewiththe
+Barcelona,Spain,Jul.2010,pp.1–8.
+School of Aeronautic Science and Engineering,
+[22] V. Mnih, K. Kavukcuoglu, D. Silver, A. Graves, I. Antonoglou,
+D. Wierstra, and M. Riedmiller, ‘‘Playing atari with deep Beihang University, China. His current research
+reinforcement learning,’’ 2013, arXiv:1312.5602. [Online]. Available: interestsincludeUAVintelligentmissionplanning
+http://arxiv.org/abs/1312.5602 andmachinelearning.
+[23] T. Schaul, J. Quan, I. Antonoglou, and D. Silver, ‘‘Prioritized
+experience replay,’’ 2015, arXiv:1511.05952. [Online]. Available:
+http://arxiv.org/abs/1511.05952
+[24] M. Hausknecht and P. Stone, ‘‘Deep recurrent Q-Learning for par-
+tiallyobservableMDPs,’’2015,arXiv:1507.06527.[Online].Available:
+http://arxiv.org/abs/1507.06527
+[25] M.Pfeiffer,M.Schaeuble,J.Nieto,R.Siegwart,andC.Cadena,‘‘From
+perceptiontodecision:Adata-drivenapproachtoend-to-endmotionplan-
+ZHIJUN MENG received the B.Eng. and Ph.D.
+ning for autonomous ground robots,’’ in Proc. IEEE Int. Conf. Robot.
+degrees from the School of Aeronautic Sci-
+Autom.(ICRA),Singapore,May2017,pp.1527–1533.
+enceandEngineering,BeihangUniversity,China.
+[26] C. Chen, A. Seff, A. Kornhauser, and J. Xiao, ‘‘Deep driving: Learn-
+He is currently an Associate Professor with the
+ing affordance for direct perception in autonomous driving,’’ in Proc.
+Department.Hehaspublishedmorethan30SCI
+IEEE Int. Conf. Comput. Vis. (ICCV), Santiago, Chile, Dec. 2015,
+pp.2722–2730. articles and has authored more than 20 inven-
+[27] H. Kretzschmar, M. Spies, C. Sprunk, and W. Burgard, ‘‘Socially tionpatents.Hisresearchinterestsincludevision
+compliant mobile robot navigation via inverse reinforcement and machine learning-based autonomous target
+learning,’’ Int. J. Robot. Res., vol. 35, no. 11, pp.1289–1307, recognition/tracking/obstacle avoidance technol-
+Sep.2016. ogyresearch.
+VOLUME9,2021 24899
+R.Xieetal.:UAVPathPlanningAlgorithmBasedonDeepReinforcementLearninginLarge-ScaleandDynamicEnvironments
+LIFENG WANG receivedthePh.D.degreefrom KAIPENG WANG received the B.Eng. degree
+Beihang University, China, in 2008. He is cur- fromBeihangUniversity,China,in2012,where
+rently an Associate Professor with the School heiscurrentlypursuingthePh.D.degreewiththe
+ofAeronauticScienceandEngineering,Beihang School of Aeronautic Science and Engineering.
+University.Hiscurrentresearchinterestsinclude HiscurrentresearchinterestsincludeUAVintel-
+aircraftdesignandobstacleavoidance. ligentcontrolandmissionplanning.
+ZHE WU received the Ph.D. degree from the
+HarbinInstituteofTechnology,China,in1988.
+He is currently a Professor with the School
+HAOCHEN LI received the B.Eng. degree from ofAeronauticScienceandEngineering,Beihang
+BeihangUniversity,China,in2017,whereheis University. He used to be the Director of the
+currently pursuing the master’s degree with the Department of Aircraft Design and Applied
+School of Aeronautic Science and Engineering. Mechanics, and the Vice President of Beihang
+HiscurrentresearchinterestsincludeUAVintel- University.Hiscurrentresearchinterestsinclude
+ligentmissionplanningandimageidentification. aircraftdesignandaircraftstealthdesign.Hewas
+selectedasaYoungandMiddle-AgedExpertwith
+outstandingcontributionsatthenationallevel,in1998.Hewasappointedas
+aYangtzeRiverScholarDistinguishedProfessorin2005.
+24900 VOLUME9,2021

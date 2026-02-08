@@ -1,0 +1,986 @@
+OceanEngineering183(2019)155–166
+ContentslistsavailableatScienceDirect
+OceanEngineering
+journalhomepage:www.elsevier.com/locate/oceaneng
+Deepreinforcementlearning-basedcontrollerforpathfollowingofan
+unmannedsurfacevehicle
+JoohyunWooa,ChanwooYub,NakwanKimc,∗
+aInstituteofEngineeringResearch,SeoulNationalUniversity,1,Gwanak-ro,Gwanak-gu,Seoul,08826,RepublicofKorea
+bThe6thR&DInstitute—3rdDirectorate,AgencyforDefenseDevelopment,Dong-eup,Uichang-gu,Jinhae,Changwon,51698,RepublicofKorea
+cResearchInstituteofMarineSystemsEngineering,SeoulNationalUniversity,1,Gwanak-ro,Gwanak-gu,Seoul,08826,RepublicofKorea
+A R T I C L E I N F O A B S T R A C T
+Keywords: Inthispaper,adeepreinforcementlearning(DRL)-basedcontrollerforpathfollowingofanunmannedsurface
+Deepreinforcementlearning vehicle(USV)isproposed.Theproposedcontrollercanself-developavehicle’spathfollowingcapabilityby
+Pathfollowing interacting with the nearby environment. A deep deterministic policy gradient (DDPG) algorithm, which is
+Unmannedsurfacevehicle an actor-critic-based reinforcement learning algorithm, was adapted to capture the USV’s experience during
+Learning-basedcontrol
+the path-following trials. A Markov decision process model, which includes the state, action, and reward
+Artificialintelligence
+formulation,speciallydesignedfortheUSVpath-followingproblemissuggested.Thecontrolpolicywastrained
+with repeated trials of path-following simulation. The proposed method’s path-following and self-learning
+capabilitieswerevalidatedthroughUSVsimulationandafree-runningtestofthefull-scaleUSV.
+1. Introduction model.InLuetal.(2018),minimallearningparameter(MLP)andthe
+disturbance observer (DOB) techniques are adopted to deal with USV
+Recently, unmanned surface vehicles (USVs) have been actively formation control. Similarly, a robust neural algorithm was adopted
+adopted in both military and commercial areas. In terms of safety, to deal with uncertainty in Zhang et al. (2018), while the USV is
+USVs can replace humans in tasks performed in dangerous and ex- performing path-following control in presence of multiple obstacles.
+treme environments such as mine countermeasures (Bertram, 2008),
+Although a number of USV path-following controllers have been pro-
+anti-submarine warfare (Corfield and Young, 2006), and reconnais-
+posed,mostoftheapproacheshavelimitationsintermsofdependency
+sance (Kucik, 2004). In terms of economic efficiency, USVs can re-
+on prior knowledge of dynamic modeling and handling of model-
+place humans in performing repetitive and tedious missions such as
+ing uncertainty. To overcome such limitations, we adopted recently
+resource exploration (Majohr and Buch, 2006) or oceanic sample ac-
+devised machine learning techniques to develop a USV controller.
+quisition (Naeem et al., 2006). Although there are different types of
+Theproposeddeepreinforcementlearning(DRL)-basedUSVcontroller
+USVsdesignedfordifferenttasks,theircommonfeatureistheirpath-
+followingcapability,whichisoneofthemostfundamentalcapabilities has self-learning capability, and, thus, it does not require any prior
+that any USV must possess. For this, a USV must have a properly knowledgeofUSVdynamicstotunethecontroller.Similarly,because
+designedpath-followingcontrollerthatiseffectiveandrobust. the learning process directly uses experience data, consisting of the
+Various control algorithms have been developed by many controlinputandthecorrespondingdynamicresponseofthevehicle,
+researcherstoimplementpathfollowinginunmannedmarinevehicles. thecontrollercanimplicitlyconsidermodelingtheuncertaintyorthe
+Theseincludetheproportional–integral–derivativecontrol(Lekkasand effectofenvironmentaldisturbancesaswell.
+Fossen, 2012; Bibuli et al., 2009), sliding mode control (Meng et al., In recent years, there have been several attempts to implement
+2012), backstepping control (Sonnenburg and Woolsey, 2013), fuzzy machinelearningtechniquesinthefieldofunmannedmaritimevehi-
+control(Zhuetal.,2016;GarusandZak,2010),andmodelpredictive
+cles (Bertaska, 2016; Bertaska and von Ellenrieder, 2018; Cheng and
+control (Naeem et al., 2006). In recent years, there have been many
+Zhang,2018;Magalhãesetal.,2018;Carrerasetal.,2003;Zhangetal.,
+attempts to deal with uncertainty in the control domain, such as
+2014;DePaulaandAcosta,2015;YooandKim,2016;Woo,2018;Cui
+disturbance or dynamic modeling uncertainty. An adaptive control
+etal.,2017).Bertaska(2016)usedatraditionalQ-learningapproachto
+algorithm (Shin et al., 2017; Mu et al., 2017) has been developed
+developasupervisoryswitchingcontrollerforUSVs.Inthiswork,three
+in an attempt to consider the uncertainty in the vehicle’s dynamic
+∗ Correspondingauthor.
+E-mailaddress: nwkim@snu.ac.kr(N.Kim).
+https://doi.org/10.1016/j.oceaneng.2019.04.099
+Received10November2018;Receivedinrevisedform28April2019;Accepted29April2019
+Availableonline18July2019
+0029-8018/©2019ElsevierLtd.Allrightsreserved.
+J.Wooetal. OceanEngineering183(2019)155–166
+basiscontrollerswerespeciallydesignedfortransiting,stationkeeping,
+and reversing maneuver, respectively. Then, a Q-learning algorithm
+wasusedtointelligentlyswitchthebasiscontrolleroftheUSVaccord-
+ingtothecurrentsituationandmaneuveroftheUSV.Afull-scaleUSV
+experimentwasconductedtovalidatetheproposedmethod.Chengand
+Zhang (2018) adopted a DRL technique for obstacle avoidance of an
+underactuated unmanned marine vehicle. In this work, convolutional
+layers were used to capture the obstacle’s information and a reward
+was specially designed for obstacle avoidance tasks. Magalhães et al.
+Fig.1. BlockdiagramoftheUSVpath-followingsystem.
+(2018) devised a conventional Q-learning-based reinforcement learn-
+ing technique to develop a biomimetic underwater vehicle controller.
+In their work, the Q-learning-based controller mimicked the stroke
+style of a fish (with two lateral fins and a tail). The control policy
+wastrainedbyusingabiomimeticvehiclesimulator,andthelearned
+model was transferred to the real vehicle for validation. Woo and
+Kim (2016) adopted the deep reinforcement learning in the field of
+collision avoidance of an unmanned surface vehicle. By expressing
+theencountersituationusingagridmapbasedvisualinformation,an
+unmanned surface vehicle can deal with avoidance decision making
+in complex encounter situation. Similar to Magalhães et al. (2018), a
+policy model was trained in simulation environment, and additional
+validationexperimentwasconducted.
+Some of the contributions of the proposed method to the field of
+marine vehicle control are as follows. First, this work was the first
+implementation of continuous action-space reinforcement learning in
+the control of an unmanned marine vehicle. There exist some works
+thatusedreinforcementlearningforcontrolpurposes(Magalhãesetal.,
+2018; Carreras et al., 2003); however, they defined action space as Fig.2. CoordinatesystemanddifferentialthrustoftheUSV.
+discreteactionswithonlyafewactioncandidates.Thesmallnumber
+of action candidates hinders the precise control of a vehicle or often
+2.1. USVdynamicmodel
+results in the chattering phenomenon. Second, we applied the DRL-
+based controller to a full-scale USV control and conducted a number
+In this work, we selected a 16-ft wave adaptive modular ves-
+ofreal-worldexperimentsforvalidation.Inmostoftheworksrelated
+sel (WAM-V) platform as the target USV type. A WAM-V platform
+toreinforcementlearningonamarinevehicle,thetrainingandtheval-
+is a catamaran-shaped platform with two inflatable pontoons hulls
+idationdomainwererestrictedtosimulation.Incontrast,weextended
+with a wave shock observer (described in Fig. 2). The vehicle was
+thedomainintoareal-worlddomaintoshowitspracticalapplicability.
+equipped with two electric thrusters on each hull, and the thruster
+Therestofthepaperisorganizedasfollows.InSection2,theUSV
+vector angle was fixed, as illustrated in Fig. 2. Because of this char-
+dynamics and path-following system used in this work are presented. acteristic, the vehicle generated yaw motion by making RPM differ-
+In Section 3, the theoretical background and problem formulation of ences in the two thrusters (known as differential thruster type). Woo
+the reinforcement learning-based controller are given. In Section 4, et al. (2018) recently conducted a dynamic system identification on
+the validation of the proposed method through full-scale USV path- an identical platform. In his work, several dynamic model includ-
+following experiments is discussed, as well as the test results and ing simplified dynamics and LSTM based deep neural network model
+analysis conducted. Finally, in Section 5, the main conclusions and was identified. In this work, we adopted the identification result of
+additionaldiscussionsarepresented. the simplified dynamic model represented in Woo et al. (2018) as
+a simulation model. Once the simulation-based training process was
+finished,thetrainedcontrollerwasimplementedontheWAM-Vplat-
+2. USVpathfollowing form and path-following experiments were conducted to validate its
+performance.
+Accordingtothetheoreticalbackgroundonreinforcementlearning, Since a horizontal planar motion of the USV is the primary con-
+cern in a path-following problem, we mainly focused on 3-degrees-of
+a learning-based controller is developed through a repeated training
+freedom(3DOF)USVmotions(surge,sway,andyawmotion).Forthe
+process.Duringthetraining,thecontrollerwillperformanactionthat
+notation,theoneproposedbyFossen(2002)wasused.Thecoordinate
+is then evaluated on the basis of the response of the environment to
+system used in this work is illustrated in Fig. 2, where 𝑥 and 𝑦 are
+theconductedaction.Becauseofthesecharacteristics,alearning-based 𝑖 𝑖
+thenorthandtheeastdirectionalposition,respectively,oftheUSVin
+controllerrequiresan‘‘environment’’tointeractwith,tobetrained.In
+theinertialframe,whereas𝑢,𝑣,and𝑉 arethesurge,sway,andtotal
+this work, we conducted USV path-following simulations to train the
+speed,respectively,ofthevehicleinabody-fixedframe.Theheading
+controller.
+angleoftheUSVisdefinedas𝜓,whereasthecourseangleandtheside
+Fig.1showsaschematicdiagramoftheUSVpath-followingsystem slipanglearerepresentedby𝜒 and𝛽,respectively.Bydefinition,the
+forthetrainingsimulation.Asillustrated,adynamicsystemshouldbe side slip angle 𝛽 can be calculated by the equation 𝛽 = 𝑎𝑠𝑖𝑛(𝑣) and
+𝑉
+implementedtodescribethevehicle’sdynamicbehaviorandaguidance the course angle can be described by the sum of 𝜓 and 𝛽, as in the
+blockisadoptedtodeterminethedesiredcourseangle.Therestofthis expression𝜒=𝜓+𝛽.
+sectionprovidesdetailedinformationaboutthecomponentsoftheUSV TheUSVkinematicmodelcanbedescribedasin(1),where𝝂and𝜼
+path-followingsystem. aredefinedasthevelocityvectorandthepositionvector,respectively.
+156
+J.Wooetal. OceanEngineering183(2019)155–166
+Fig.3. SchematicdiagramoftheactuatordynamicsoftheWAM-VUSVplatform.
+𝑹(𝜼)isarotationmatrixfromabody-fixedframetoaninertialframe.
+𝜼̇ =𝑹(𝜼)𝝂 (1)
+𝝂=(𝑢,𝑣,𝑟)𝑇 (2)
+𝜼=(𝑥,𝑦,𝜓)𝑇 (3)
+𝑖 𝑖
+𝑐𝑜𝑠(𝜓) −𝑠𝑖𝑛(𝜓) 0
+⎡ ⎤
+𝑹(𝜼)=⎢ 𝑠𝑖𝑛(𝜓) 𝑐𝑜𝑠(𝜓) 0 ⎥ (4)
+⎢ ⎣ 0 0 1 ⎥ ⎦
+The 3DOF horizontal planar dynamic model of the USV can be
+describedbythefollowingequation:
+𝑴𝝂̇ +𝑪(𝝂)𝝂+𝑫(𝝂)𝝂=𝒇, (5)
+where𝑴isthemassmatrix,𝑪(𝝂)istheCoriolisandcentripetalmatrix,
+𝑫(𝝂)isthedampingmatrix,and𝒇 isthecontrolforcesandmoment.
+SincethetargetUSVwasadifferentialthrustertype,thecontrolforces
+andmoment𝒇 canbedescribedasfollows:
+𝜏 𝑇 +𝑇
+⎡ 𝑋 ⎤ ⎡ 𝑝𝑜𝑟𝑡 𝑠𝑡𝑏𝑑 ⎤ Fig.4. VectorfieldguidanceforUSVlinearpathfollowing.
+𝒇 =⎢ 𝜏 ⎥=⎢ 0 ⎥ (6)
+𝑌
+⎢ ⎣ 𝜏 𝑁 ⎥ ⎦ ⎢ ⎣ (𝑇 𝑝𝑜𝑟𝑡 −𝑇 𝑠𝑡𝑏𝑑 )⋅𝐵 2 ⎥ ⎦
+Intheaboveequation,𝑇 𝑝𝑜𝑟𝑡 and𝑇 𝑠𝑡𝑏𝑑 representthethrustforceofthe term.AccordingtothesystemidentificationresultinWooetal.(2018),
+portsideandthestarboardsidethruster,respectively,and𝐵 refersto theunknownparametersin(10)and(11)canbedescribedasin(12)
+thebeamofthetargetUSV.Weimplementedanactuatormodelbased and(13):
+on model of Woo et al. (2018); thus, the thrust force can be directly
+calculatedfromthethruster’sRPM𝛿𝑛asin(7). 𝑢̇ =−1.3191𝑢+0.0028𝑢𝜏 𝑋 +0.6836 (12)
+[ ] [ ][ ] [ ] [ ]
+𝑣̇ 0.0161 −0.0052 𝑣 0.0002 0.0068
+𝑇 =3.54×10−5𝛿𝑛2+0.084𝛿𝑛−3.798, (7) 𝑟̇ = 8.2861 −0.9860 𝑟 + 0.0307 𝜏 𝑁 + 1.3276
+wheretheRPM𝛿𝑛ofeithertheportorthestarboardsideisdetermined (13)
+bythesteeringcommand𝛿𝑛 andthespeedcommand𝛿𝑛 ,whichare
+𝑑 𝑚
+inverselycalculatedfrom(8)and(9),respectively.In(8),thesteering 2.2. Guidance
+command𝛿𝑛 isdefinedastheRPMdifferencebetween𝛿𝑛 and𝛿 ,
+𝑑 𝑝𝑜𝑟𝑡 𝑠𝑡𝑏𝑑
+normalized by the maximum RPM value 𝛿𝑛 . Similarly, the speed AsillustratedinFig.1,theroleoftheguidanceblockinaUSVpath-
+𝑚𝑎𝑥
+command is defined as a normalized mean value of both RPMs as in following scenario is to determine the desired setpoint course angle
+(9). value based on the path information and on the current state of the
+USV.
+𝛿𝑛 =(𝛿𝑛 −𝛿𝑛 )∕(2𝛿𝑛 ) (8)
+𝑑 𝑝𝑜𝑟𝑡 𝑠𝑡𝑏𝑑 𝑚𝑎𝑥 For the speed dynamics, we did not implement any guidance or
+𝛿𝑛 =(𝛿𝑛 +𝛿𝑛 )∕(2𝛿𝑛 ) (9) controlmethodtosimplify theproblem. Thisis stillavalid approach
+𝑚 𝑝𝑜𝑟𝑡 𝑠𝑡𝑏𝑑 𝑚𝑎𝑥
+because,inthepath-followingproblem,thereisnotemporalspecifica-
+AccordingtotheactuatordynamicspresentedinWooetal.(2018),
+tion(Bibulietal.,2009)(contrarytotrajectorytracking);thus,speed
+the absolute value of the RPM 𝛿𝑛 and the rate of the RPM 𝛿𝑛̇ are
+dynamics is less important than steering dynamics. Therefore, for the
+saturatedas𝛿𝑛 and𝛿𝑛̇ ,respectively,asshowninFig.3.
+𝑚𝑎𝑥 𝑚𝑎𝑥 speeddynamics,weappliedaconstanttargetspeed𝑉 tothevehicle’s
+𝑑
+AmongthevariousdynamicmodelssuggestedinWooetal.(2018),
+speedcontroller.
+weadoptedthelinearizedmaneuveringdynamicsasthemodelforthe
+For the steering dynamics, we adopted the vector field guidance
+simulation.Owingtothesimplicityoftheselectedmodel,thecalcula-
+(VFG) method proposed by Nelson et al. (2007) to determine the
+tiontimeofthemodelisfastenoughforrunningmillionsofsimulation
+desiredcourseangle.TheVFGmethodwasdevelopedtodealwiththe
+steps from the repetitive training process in a limited time, while
+path-followingproblemofanunmannedaerialvehicle,butwasapplied
+maintaininganappropriatelevelofdynamicspredictionaccuracy.For
+to the maritime domain as well by several researchers (Yiannis and
+the linearized maneuvering dynamics, the speed dynamic model is
+Mitchel; Niu et al., 2016; Woo and Kim, 2016). In the VFG method,
+described as in (10) and the steering dynamics can be represented as
+thevectorfielddirectlyindicatesthedesireddirectionofthevehicleto
+in(11):
+move,tofollowthegivenpath.Ontheassumptionthattheautopilotof
+𝑢̇ =𝑎 𝑢+𝑏 𝑢𝜏 +𝑏 (10) thecourseanglesystemwasfirstorder,Nelsonshowedamathematical
+[
+𝑢
+]
+𝑢
+[
+𝑋
+]
+𝑢𝑏𝑖𝑎𝑠
+proof for the Lyapunov stability of the guidance (see Nelson et al.,
+𝑣̇ 𝑣
+=𝑨 +𝑩𝜏 +𝑩 , (11) 2007).
+𝑟̇ 𝑟 𝑁 𝒃𝒊𝒂𝒔
+Fig.4showsanexampleofthevectorfieldforalinearpath.Each
+wherethematrix𝑨isa2-by-2systemmatrix,thematrix𝑩 isa2-by- of the blue arrows represents the desired course angle of the vehicle
+1controlmatrix,and𝑩 isa2-by-1matrixforinclusionofthebias whenthevehicleisatthedesignatedposition.Accordingtothefigure,
+𝒃𝒊𝒂𝒔
+157
+J.Wooetal. OceanEngineering183(2019)155–166
+3. Reinforcementlearning-basedcontroller
+Reinforcementlearningisonebranchofmachinelearninginwhich
+the agent interacts with the environment to find the best policy. In
+supervisedlearning,thedesiredoutputinformationcorrespondstothe
+inputvariable,whichisprovidedasalabelduringthetrainingprocess.
+However, in reinforcement learning, the agent directly interacts with
+the environment without having any information in advance. During
+the training, the agent performs an action 𝑎 at time 𝑡, based on the
+𝑡
+current state 𝑠 and policy 𝜋. As a result of the action 𝑎, the current
+𝑡 𝑡
+state 𝑠 may change according to the transition probability model
+𝑡
+𝑝(𝑠 𝑡+1|𝑠
+𝑡
+,𝑎
+𝑡
+). Based on the evaluation of the state transition, a reward
+𝑟(𝑠,𝑎)isreceived.Thisprocessisrepeated,and,basedonthisexperi-
+𝑡 𝑡
+ence,thepolicy𝜋istrained.Apolicy𝜋canbemodeledasastochastic
+policy𝜋(𝑎|𝑠)oradeterministicpolicy𝜋(𝑠).Inareinforcementlearning
+problem, the goal is to find an optimal policy 𝜋∗ that maximizes the
+Fig. 5. Path representation using waypoints and the corresponding vector field accumulateddiscountedreward𝑅 𝑡 asin(17)(SuttonandBarto,1998).
+determinedbytheVFGmodel. Inthefollowingequation,𝛾isknownasadiscountfactor,whichweighs
+thefutureerrorandhasavaluebetween0and1.
+𝑅 =𝑟 +𝛾𝑟 +𝛾2𝑟 ...
+𝑡 𝑡 𝑡+1 𝑡+2
+thedesiredcoursetendstobeaffectedbythepathangle𝜒𝑝𝑎𝑡ℎ andthe ∑ ∞ (17)
+crosstrackerror𝑒 (thevehicle’sperpendiculardistancetothepath). = 𝛾𝑘𝑟
+𝑦 𝑡+𝑘+1
+When𝑒 𝑦 issmall,thedesireddirectionisidenticaltothedirectionofthe 𝑘=1
+path.However,as𝑒 𝑦 increases,thedifferencebetweenthepathangle Apolicy𝜋canbeevaluatedbyusingtwovaluefunctions.A(state)
+and the desired direction tends to increase as well. Considering this valuefunction𝑉𝜋(𝑠)isdefinedastheexpectationoftheaccumulated
+characteristic, Nelson et al. (2007) defined a vector field for a linear discounted reward 𝑅 while maintaining the policy 𝜋. Similarly, an
+𝑡
+pathasin(14).Accordingtotheequation,themaximumdeviationof action value function 𝑄𝜋(𝑠,𝑎) is defined as a value function for the
+thecourseanglefromthepathangleislimitedto𝜒∞. 𝑡 𝑡
+specificstateandactionpair(𝑠,𝑎).
+𝑡 𝑡
+𝜒𝑑 =𝜒∞⋅𝑡𝑎𝑛−1(𝑘𝑒 𝑦 )+𝜒𝑝𝑎𝑡ℎ (14) 𝑉𝜋(𝑠
+𝑡
+)=E
+𝜋
+[𝑅 𝑡|𝑠
+𝑡
+]
+AtargetpathforaUSVcanberepresentedinvariousforms,such =E 𝜋 [∑ ∞ 𝛾𝑘𝑟 𝑡+𝑘+1|𝑠 𝑡 ] (18)
+as a polynomial spline (often used with the Serret–Frenet frame) or 𝑘=1
+a set of waypoints. In this study, we assumed that a path can be
+considered as a piecewise linear path and can be represented by a
+𝑄𝜋(𝑠
+𝑡
+,𝑎
+𝑡
+)=E
+𝜋
+[𝑅 𝑡|𝑠
+𝑡
+,𝑎
+𝑡
+]
+s
+w
+e
+a
+t
+y
+o
+p
+f
+o
+w
+in
+a
+ts
+y
+.
+p
+A
+o
+c
+in
+co
+ts
+r
+.
+d
+F
+in
+ig
+g
+.
+to
+5
+t
+s
+h
+h
+is
+ow
+ap
+s
+p
+t
+r
+h
+o
+e
+ac
+p
+h
+a
+,
+t
+t
+h
+he
+re
+ta
+p
+r
+r
+g
+e
+e
+se
+t
+n
+p
+t
+a
+a
+t
+t
+h
+io
+i
+n
+sr
+u
+e
+s
+p
+i
+r
+n
+e
+g
+se
+a
+nt
+s
+e
+e
+d
+t
+b
+o
+y
+f =E
+𝜋
+[∑ ∞ 𝛾𝑘𝑟 𝑡+𝑘+1|𝑠
+𝑡
+,𝑎
+𝑡
+] (19)
+usingalineofsight(LOS)fromthepreviouswaypoint𝑊 (𝑥 ,𝑦 ) 𝑘=1
+𝑘−1 𝑘−1 𝑘−1
+toward the current waypoint 𝑊 (𝑥 ,𝑦 ). When 𝑑 is defined as an According to the definition of the value functions and the opti-
+𝑘 𝑘 𝑘
+Euclideandistancebetween𝑊 and𝑊 ,oncethedifferencebetween mal policy 𝜋∗, the optimal policy 𝜋∗ always satisfies the following
+𝑘−1 𝑘
+the d and along track error 𝑒 became smaller than certain threshold conditions:
+𝑥
+distancevalue𝑑 𝑡ℎ ,as𝑑−𝑒 𝑥 <𝑑 𝑡ℎ ,thetargetwaypointischangedtothe 𝜋∗=argmax𝑉𝜋(𝑠 𝑡 )
+nextwaypoint.Withthisapproach,apathcanalwaysbeconsideredas 𝜋
+(20)
+a linear path and the VFG model for the linear path can be directly =argmax𝑄𝜋(𝑠,𝑎)
+𝑡 𝑡
+applied. To apply the VFG method in path following, we need to 𝜋
+identifythevehicle’spositionalerror(thealong-trackerror𝑒 andthe Tosolvethereinforcementlearningproblem,researchersoftenuse
+𝑥
+cross track error 𝑒 ). The error value can be calculated by using the aneuralnetworkasanapproximatorofthevaluefunctions.However,
+𝑦
+followingprocess.First,thedirectionofthepath(𝜒 ),thedirection the learning process (by updating the temporal difference update) of
+𝑝𝑎𝑡ℎ
+from 𝑊 (𝑘−1) to the USV (𝜒 𝑊𝑘−1 ) and the distance from the previous the reinforcement learning algorithm and the training of the neural
+waypointtotheUSV(𝑑 𝑊𝑘−1 )canbecalculatedasfollows. networkapproximatorforthevaluefunctionapproximationofteninter-
+𝑦 −𝑦 ferewitheachother,hinderingthelearningprocesstobesettled.This
+𝜒 =𝑎𝑡𝑎𝑛( 𝑘 𝑘−1)
+𝑝𝑎𝑡ℎ 𝑥 −𝑥 phenomenonisknownasinterferenceproblem(Carrerasetal.,2003)and
+𝑘 𝑘−1
+𝑦 −𝑦 wasconsideredasthebiggestobstacletothereinforcementlearningto
+𝜒 =𝑎𝑡𝑎𝑛( 𝑢𝑠𝑣 𝑘−1) (15)
+𝑊𝑘−1 𝑥 −𝑥 beappliedinareal-worldproblem.
+𝑢𝑠𝑣 𝑘−1
+√ Owing to the interference problem, training of a large-scale neu-
+𝑑 = (𝑦 −𝑦 )2+(𝑥 −𝑥 )2
+𝑊𝑘−1 𝑢𝑠𝑣 𝑘−1 𝑢𝑠𝑣 𝑘−1 ral network often results in unstable outcomes and, sometimes, even
+Then,usingthegeometricrelationship,wecancalculatethealong-track diverges during the learning process. Recently, Mnih et al. (2015)
+error𝑒 andthecrosstrackerror𝑒 using(16): proposedatrainingmethodtodealwithalarge-scaleneuralnetworkin
+𝑥 𝑦
+areinforcementlearningproblem.ThekeyfactorthatMnihetal.used
+𝑒 =𝑐𝑜𝑠(𝜒 −𝜒 )⋅𝑑
+𝑥 𝑝𝑎𝑡ℎ 𝑊𝑘−1 𝑊𝑘−1 (16) toeliminateinstabilitywastheuseofexperiencereplay andaseparate
+𝑒 𝑦 =𝑠𝑖𝑛(𝜒 𝑝𝑎𝑡ℎ −𝜒 𝑊𝑘−1 )⋅𝑑 𝑊𝑘−1 targetnetwork.AlthoughtheDeepQNetwork(DQN)proposedbyMnih
+Once the error variables are identified, the desired course angle etal.(2015)significantlyimprovedthestabilityandperformanceofthe
+canbecalculatedusing(14).Thedesiredcourseangleisthenusedas complexreinforcementlearningproblem,themethodisnotsuitablefor
+thesetpointvalueforthesteeringcontrolleroftheUSV.Inthiswork, theUSVpath-followingproblembecauseofitsdiscreteactionspace.
+a reinforcement learning-based controller was used for the steering SincetheDQNisatypeofQ-learning-basedreinforcementlearning
+dynamics controller, and a detailed explanation of the controller is algorithm, it uses a discrete action space. Therefore, the agent can
+providedinSection3. only select the best action from among the limited predefined action
+158
+J.Wooetal. OceanEngineering183(2019)155–166
+candidates (usually less than 10 action candidates). If the number of
+action candidates is too small, precise control of the vehicle becomes
+difficult.Especiallyatthesteadystate,thecontrollertendstoperiod-
+icallychangeitsaction(similartothe‘‘bang–bangcontrol’’),whichis
+knownaschattering.Toovercomethislimitation,weusedareinforce-
+ment learning algorithm that can be applied to a continuous action
+space.Thedeepdeterministicpolicygradient(DDPG)algorithmisan
+actor-criticstructure-basedreinforcementalgorithmthatcandealwith
+a continuous action space. Based on the structure and mathematical
+foundationofadeterministicpolicygradient(DPG)(Silveretal.,2014),
+the DDPG algorithm can deal with a continuous action space. The
+methodassumesthatthetargetpolicy𝜋∗isadeterministicpolicyas𝜇,
+butusesastochasticpolicy𝛽 forexploration.Bythisassumption,the
+learning process can be off-policy. In reinforcement learning method
+dealingwithactionvaluefunction𝑄𝜋(𝑠,𝑎),updatingoftheQ-valueis
+𝑡 𝑡
+performedbyusingtheBellmanequation(22).Ifthereisanassumption
+that the target policy is deterministic, then the inner expectation can
+be eliminated as in (22). Since the expectation is dependent on the
+environment,thepolicy𝑄𝜇 couldbelearnedoff-policy,whichmeans
+thattheexplorationcanbeseparatedfromthelearningprocess(Silver
+etal.,2014):
+Fig.6. Schematicdiagramofthestructureofthecontrolpolicynetworks.
+𝑄𝜋(𝑠,𝑎)=E [ 𝑟(𝑠,𝑎)+𝛾E [𝑄𝜋(𝑠 ,𝑎 )] ] (21)
+𝑡 𝑡 𝑟𝑡,𝑠𝑡+1∼𝐸 𝑡 𝑡 𝑎𝑡+1∼𝜋 𝑡+1 𝑡+1
+𝑄𝜇(𝑠,𝑎)=E [ 𝑟(𝑠,𝑎)+𝛾𝑄𝜇(𝑠 ,𝑚𝑢(𝑠 )) ] (22)
+𝑡 𝑡 𝑟𝑡,𝑠𝑡+1∼𝐸 𝑡 𝑡 𝑡+1 𝑡+1 informationtothecontroller,thevariable𝑒
+𝑦
+isaddedtoconsiderthe
+Whenaneuralnetwork-basedfunctionapproximatorisparameter- relative positional error information in generating the control input.
+izedby𝜃𝑄,theapproximatorcanbeoptimizedbyminimizingtheloss Moreover, 𝛿𝑛 𝑑 is included in the state space to provide the current
+function𝐿(𝜃𝑄)in(23): steeringcommandinformationtopreventthechatteringphenomenon.
+In addition, the time derivative variables 𝜒̃̇ and 𝑒̇ are included to
+𝑦
+𝐿(𝜃𝑄)=E 𝑠𝑡∼𝜌𝛽,𝑎𝑡∼𝛽,𝑟𝑡∼𝐸 [(𝑄(𝑠 𝑡 ,𝑎 𝑡|𝜃𝑄)−𝑦 𝑡 )2], (23) providethetemporalinformationtothecontroller.Inordertoobtain
+thestatevariablesduringtheexperiment,weusedon-boardnavigation
+where𝑦 isknownasthetemporaldifferencetargetandisdefinedas
+𝑡 sensor such as GPS, AHRS to measure the navigational solution. A
+follows:
+signal processing filter (Savitzky–Golay filter) is applied to the mea-
+𝑦
+𝑡
+=𝑟(𝑠
+𝑡
+,𝑎
+𝑡
+)+𝛾𝑄(𝑠
+𝑡+1
+,𝜇(𝑠
+𝑡+1
+)|𝜃𝑄) (24) surementsignalinordertoreducetheeffectofhigh-frequencysensor
+noise. This is an essential process especially for calculating the time
+By adopting the recently developed techniques in deep reinforce-
+derivativevariableswithoutmagnifyingthesensornoise.
+ment learning such as experience replay, separate target network, and
+Since the reinforcement learning-based controller is designed as a
+batchnormalization,theDDPGalgorithm(Lillicrapetal.,2015)candeal
+steeringcontroller,theactionspace𝑎∈Aisdefinedas(27)
+withlarge-scaleneuralnetworkapproximators.
+Fig. 6 shows a schematic diagram of the structure of the DDPG A={𝛿𝑛 𝑑 }, (27)
+algorithm used in this work. There are two feed-forward neural net-
+where 𝛿𝑛 is a steering control command, which defines the RPM
+works,namely,theactornetworkandthecriticnetwork.Eachofthe 𝑑
+commands of the main thrusters as in (9). In this work, since the re-
+networksiscomposedoftwohiddenlayerswith400and300node.For
+searchscopeislimitedtothepath-followingproblem,thecontrolaction
+theactivationofeachnode,arectifiedlinearunitfunctionisused.For
+for the reinforcement learning is only focused on the steering control
+the updating of the networks, the critic network is updated using the
+command 𝛿𝑛 . This simplifies the complexity of the reinforcement
+gradientofthelossfunction𝐿(𝜃𝑄)in(23),whereastheactornetwork 𝑑
+learningproblemandbooststhespeedoftheconvergence.
+usesadeterministicpolicygradient(Silveretal.,2014),whichcanbe
+Inthereinforcementlearningproblem,arewardisusedtoevaluate
+obtainedbyusing(25):
+the performance of the current policy. Thus, we defined a reward
+▿ 𝜃𝜇𝐽 ≈ = E E 𝑠 𝑠 𝑡 𝑡 ∼ ∼ 𝜌 𝜌 𝛽 𝛽 [ [ ▿ ▿ 𝜃 𝑎 𝜇 𝑄 𝑄 (𝑠 ( , 𝑠 𝑎 ,𝑎 |𝜃 |𝜃 𝑄 𝑄 )| ) 𝑠 | = 𝑠= 𝑠𝑡 𝑠 ,𝑎 𝑡, = 𝑎= 𝜇( 𝜇 𝑠 ( 𝑡 𝑠 ) 𝑡 ▿ |𝜃 𝜃 𝜇 𝜇 ) ] 𝜇(𝑠|𝜃𝜇)|𝑠=𝑠𝑡 ] (25) f g p u o r n o a c b l t l o i e o f m n th i s e s u p t c o a h t m h th - i f n a o t i l m l i o t i w z e e i v n a t g h lu e p a r c t o r e b o s s le t s h m t e r . a c S c u i k n rr c e e e r n r t o t h r v e a e g n h o d i a c l l t e h o e f st t c a h o t e u u s p rs a b e t a h a s - n e fo g d l l l e o o n e w r t i r n h o g e r
+without producing chattering, partial reward functions are defined as
+In reinforcement learning, the design of the components of the
+(28)–(30)andareillustratedinFig.7.
+Markov decision process is one of the most crucial processes. The
+performance of the algorithm and the speed of the convergence are ⎧𝑒−𝑘1⋅|𝜒̃| if|𝜒̃|<90◦
+s
+re
+tr
+w
+o
+a
+n
+r
+g
+d
+ly
+. I
+a
+n
+ffe
+th
+ct
+is
+ed
+w
+b
+o
+y
+rk
+th
+,
+e
+th
+c
+e
+or
+p
+r
+r
+e
+i
+c
+m
+tn
+a
+e
+ry
+ss
+g
+o
+o
+f
+a
+t
+l
+he
+of
+st
+t
+a
+h
+t
+e
+e
+r
+s
+e
+p
+i
+a
+n
+c
+f
+e
+o
+,
+r
+a
+ce
+ct
+m
+io
+e
+n
+nt
+sp
+le
+a
+a
+c
+r
+e
+n
+,
+i
+a
+n
+n
+g
+d
+-
+𝑟
+𝜒̃
+= ⎪
+⎨
+−𝑒−𝑘1⋅(𝜒̃−180) if𝜒̃≥90◦ (28)
+based controller is to minimize the vehicle’s cross track error toward
+⎪
+⎩
+−𝑒−𝑘1⋅(𝜒̃+180) if𝜒̃≤−90◦
+thetargetpath(𝑒 𝑦 ),whereasthedesiredcourseangleisprovidedbythe 𝑟 𝑒𝑦 =𝑒−𝑘2⋅|𝑒𝑦| (29)
+vectorfieldguidancemethod.Accordingtothis,thestatespace𝑠∈S
+isdefinedas(26)
+𝑟
+𝜎𝛿
+=𝑒−𝑘3⋅𝜎𝛿, (30)
+S={𝜒̃,𝜒̃̇,𝑒 ,𝑒̇ ,𝛿𝑛 }, (26) where 𝜒̃, 𝑒 𝑦 , and 𝜎 𝛿 are the course angle error, cross track error, and
+𝑦 𝑦 𝑑
+standard deviation, respectively, of the recent 20 steering command
+where𝜒̃ isthedifferencebetweenthecourseangleoftheUSVandthe historyvalues.
+desiredcourseanglecalculatedfromthevectorfieldguidancemethod As described in Fig. 7, the partial reward function has a positive
+as 𝜒̃ = 𝜒̃ −𝜒̃ , 𝑒 is the cross track error, and 𝛿𝑛 is a steering peakvaluewheneachsub-goalissatisfied.For𝑟 ,thepartialreward
+𝑑 𝑢𝑠𝑣 𝑦 𝑑 𝜒̃
+command of the USV. Since 𝜒̃ only provides angular positional error hasamaximumvaluewhen𝜒̃isequalto0andaminimumvaluewhen
+159
+J.Wooetal. OceanEngineering183(2019)155–166
+Fig.7. PartialrewardfunctionsdesignedforUSVpathfollowing.Eachpartialrewardvaluereachesthemaximumvaluewhen𝜒̃,𝑒 𝑦,and𝜎 𝛿 approach0.
+Fig.8. Movingaverage(windowof100episodes)andstandarddeviationoftheaccumulatedrewardvaluepertrainingepisode.
+theerrorisnear±180◦.Thenegativepenaltytermpreventsthevehicle
+from turning toward the inverse-path direction. For 𝑟 , the partial
+𝑒𝑦
+reward value reaches a peak value when 𝑒 is equal to 0. Similarly,
+𝑦
+the value of 𝑟 reaches the maximum value when 𝜎 approaches 0.
+𝜎𝛿 𝛿
+This is the case when the vehicle maintains its steering command
+statically,withoutproducinganychattering.Overall,thetotalreward
+value𝑟isdefinedastheweightedsumofthepartialrewardvalues,as
+in (31). During the training stage, the weight variables 𝑤 , 𝑤 , and
+𝜒̃ 𝑒𝑦
+𝑤 areselectedas0.4,0.5,and0.1respectively.Combinationofthe
+𝜎𝛿
+weightvariablesisdeterminedbyusingtheheuristicapproachthrough
+repeated trials and errors. In our work, the constant variables in the
+partial reward function were selected as 0.1, 0.2, and 0.3 for 𝑘 , 𝑘 ,
+1 2
+and𝑘 ,respectively.
+3
+𝑟=𝑤 𝑟 +𝑤 𝑟 +𝑤 𝑟 (31)
+𝜒𝑒 𝜒𝑒 𝑒𝑦 𝑒𝑦 𝜎𝛿 𝜎𝛿
+In this work, the reinforcement learning-based controller was
+trained through repeated (up to 8000 episodes and about 750,000
+training steps) path-following simulations. During the simulation, the
+initial USV position, heading angle, and path angle were randomly
+selected to generate a variety of encounter conditions with the target Fig.9. WAM-Vplatformduringthepath-followingexperimentinPyeongtaekLake.
+path. The maximum time step for each episode was limited to 1000
+steps, and each episode was finished when the cross track error 𝑒
+𝑦
+becamelargerthan40m.Inthetrainingsimulation,thetimestepwas to monotonically increase until it reached about 1300 episodes. After
+defined as 0.1 s (10 Hz) and the size of the minibatch was set to 64.
+thatphase,theaverageandthestandarddeviationoftheaccumulated
+Forthetrainingofthenetwork,theAdamoptimizerwasusedtotrain
+boththeactorandthecriticnetwork.Thelearningratewassetto10−4 rewardtendedtostabilize.Accordingtothislearningcurve,wecandis-
+for the actor network and to 10−3 for the critic network. The target coverthedevelopmenttendencyofthepolicyasthetrainingproceeds;
+networktransitiongain𝜏wasselectedas10−3,andthediscountfactor
+however,itisstilluncertainhowthepolicyworksasacontrollerina
+𝛾wasselectedas0.99.Fortheexplorationofthetraining,theOrnstein–
+path-following problem. To find out the behavior of the control poli-
+UhlenbeckexplorationmethoddiscussedinLillicrapetal.(2015)was
+used. ciesfromdifferenttrainingphases,weselectedfourdifferenttraining
+Fig. 8 illustrates the learning curve achieved as a result of the phasesandextractedthepolicyparameterfromtheactornetwork.The
+training.Theredlinerepresentsthemovingaverageoftheaccumulated
+extractedparameterswerethenusedforthepath-followingcontroller,
+rewardforeachepisode,andtheshadedregionrepresentsthestandard
+deviationoftheaccumulatedrewardwithinthemovingwindow.The andtheperformanceandbehaviorofthecontrollerareanalyzedinthe
+resultshowedthattheaveragevalueoftheaccumulatedrewardtended nextsection.
+160
+J.Wooetal. OceanEngineering183(2019)155–166
+Fig.10. Trajectorydatacollectedfromthelinearpath-followingexperimentwithvariouscontrolpolicies(left)andavideosnapshotoftheWAM-Vplatformduringthelinear
+path-followingexperiments(right).
+4. Validation eachcontrolpolicy,anidenticallinearpathwasusedasthetargetpath.
+In addition, the initial value of the position and heading angle of the
+Tovalidatethepath-followingandself-learningcapabilitiesofthe vehiclewasintentionallycontrolled,inanattempttoeliminateitseffect
+proposed method, we conducted several USV simulations and free- on the path-following capability. The right side of Fig. 10 shows an
+runningtestswithafull-scaleUSV.Forvalidationpurposes,weselected aerialsnapshotoftheUSVduringthepath-followingexperimentwith
+twodifferenttypesofpathasatargetpath.First,weselectedalinear variouscontrolpolicies.Thesnapshotpicturesweretakensequentially
+pathasatargetpath.SinceaUSVpathisoftenrepresentedbyasetof at 4 s of time interval. In this work, we used two error variables to
+waypoints,apathcanbeexpressedasapiecewiselinearpath.Thus,the measuretheperformanceofthecontrolpolicy,namely,thecrosstrack
+path-followingcapabilityofalinearpathcanbethemostfundamental
+error𝑒
+𝑦
+andthecourseangleerror𝜒̃.Thecrosstrackerrorisdefined
+as a lateral positional error that is perpendicular to the path angle,
+requirement for a USV. Second, a grid search path was selected as a
+whereas the course angle error is defined as the difference between
+target path. A USV is often used to substitute for a human operator
+the USV course angle and the desired course angle calculated from
+inperformingdangerousortediousrepeatedoperations.Suchmissions
+the VFG guidance command. Fig. 11 shows the time history of the
+include data collecting mission and object search mission (either an
+crosstrackerrorandthecourseangleerrorduringthepath-following
+above-water search or an underwater search), which often follow the
+experiments,andFig.12showsthecorrespondingcontrolinputduring
+gridsearchpath.Agridsearchpathmaybeconsideredasapiecewise
+theexperiments.
+linearpath;however,weselectedagridsearchpathsinceitcancovera
+According to the experimental result, as the training proceeded
+dynamicbehaviorduringthepathtransitionofanadjoiningpiecewise
+frompolicyAtopolicyD,thelinearpath-followingcapabilitytended
+linearpath.
+to develop. At the initial training stage (policy A), the control policy
+To analyze the proposed method’s self-learning capability, we ex-
+generatedahardover maneuvertowardtheportside,producingafull
+tractedaseriesofcontrolpolicies(policiesA,B,C,andD)duringthe
+negativesteeringcommandcontinuouslyassoonasthepath-following
+training process, as illustrated in Fig. 8. The extracted policies were
+modewasswitchedon.Thiscouldcausearepeatedturningmaneuver
+thenimplementedinthefull-scaleUSVasasteeringcontroller.Anum-
+of the USV, as indicated by the green line in Fig. 10. After a certain
+berofpath-followingexperimentswereconductedwithdifferenttarget
+period of training (about 400 more training episodes), control policy
+pathtypesandvariouscontrolpolicies.Anexperimentwasconducted
+B could be achieved. As illustrated in the magenta-colored line in
+in PyeongtaekLake, SouthKorea, duringa calmwatercondition. For Fig. 10, the control policy tended to track the desired course angle
+theUSV,asmentionedinSection2,theWAM-Vplatformwasusedas attheinitialstage;however,assoonasthecourseangleerrorexceed
+atargetUSV.Notethatthecontrolpoliciesweretrainedbysimulation, certainthresholdvalue(atapproximately18s),thevehicletendedto
+but were directly implemented in the free-running experiment. We perform a hardover toward the port side (see Fig. 12). This indicates
+concludedthatthiswasstillreasonablesincethedynamicmodelused thatthepolicywascapableoftrackingthedesiredcourseanglewhen
+inthesimulationwasdirectlyidentifiedfromthesameUSVplatform it had a negative course angle error; however, once the course angle
+andactuators,usingthesystemidentificationexperiment(Wooetal., errorreachedapositivevalue,thecontrolpolicystartedtoproducea
+2018). Fig. 9 shows the experimental area and the WAM-V platform continuous negative steering command, like what policy A did. This
+duringthepath-followingexperiment. phenomenon vanished when the training process reached policy C.
+Fig. 10 shows a number of USV trajectories resulting from the AccordingtotheUSVtrajectoryinFig.10,theUSVdidnotproducea
+linear path-following experiment with different control policies. For hardover steeringcommandanymore.Thepath-followingcapabilityof
+161
+J.Wooetal. OceanEngineering183(2019)155–166
+Fig.11. Historyofthecrosstrackerror𝑒 𝑦 andcourseangleerror𝜒̃ duringthelinearpath-followingexperimentswithvariouscontrolpolicies.
+Fig.12. Historyofthecontrolinput(steeringcommand𝛿𝑛 𝑑)duringthelinearpath-followingscenario.
+policyCwassuperiortothoseofpoliciesAandB;however,thispolicy
+tended to have a steady-state error. Once the training stage reached
+policyD,thepath-followingcapabilitytendedtobecomerobustenough
+to track a linear path; the control policy did not produce a hardover
+commandorasteady-statetrackingerror.Notethatthesteeringcom-
+mand 𝛿 remains nearly zero during the steady state (on dynamic
+𝑛𝑚
+equilibriumpoint).Suchcommandmaybedifferentifthereexistsside
+direction force acting on the vehicle such as wind or current loads.
+Fig.13showsthecomparisonresultofthedifferentcontrolpoliciesfor
+thelinearpath-followingproblem.Boththecrosstrackandthecourse
+angleerrortendedtodecreaseasthetrainingproceeded.
+Sofar,wehavedemonstratedthefeasibilityoftheproposedDDPG-
+based controller by comparing the path following result of a number
+of DDPG policy extracted from different learning stages. In order to
+analyze the performance of the DDPG algorithm, we have conducted
+linearpathfollowingsimulationsusingbenchmarkcontrollersaswell.
+Forthecomparison,wehaveselectedaconventionalPIDcontrollerand
+DQNbasedcontrollerasbenchmarkcontrollers.Forthecontrolgainof
+thePIDcontroller,wehaveheuristicallytunedthePIDcontrolleruntil Fig.13. Resultoftheperformancecomparisonofthecontrolpoliciesfromthelinear
+thecontrolperformancereachestoasuitablelevel.Figs.14–16repre- path-followingexperiments.
+sentscomparisonresultsofthelinearpathfollowingsimulationusing
+a number of different controllers. As a result of the comparison, the
+proposedmethodandDQNbasedcontrollertendstohaveacomparable the number of action candidate is limited (e.g. only 10 action candi-
+path following ability as the conventional PID controller. However,
+dates), thus in most of the case, a sub-optimal steering command is
+the DQN based controller has a chattering tendency which produces
+constantswitchingofthecontrolinput.Suchtendencyoccursbecause chosenfromthecandidatesinsteadofoptimalvalueforthatcondition.
+162
+J.Wooetal. OceanEngineering183(2019)155–166
+path-following experimental data. This is shown in Fig. 17, where
+Fig. 17 (left) represents the trajectory of the USV during the path-
+followingexperimentwithvariouscontrolpoliciesandFig.17(right)
+shows the simulation result of the USV with the same condition as
+in Fig. 17 (left) By comparing the figures, we can see that the dy-
+namic behaviors of the USV were similar in both data; in addition,
+thedistinctivecharacteristicsofeachcontrolpolicycouldbefoundin
+both data. With this phenomenon, we can conclude that the policies
+trainedbytheUSVsimulatorcanbedirectlyappliedtothefree-running
+experiment, although unmodeled dynamics terms or environmental
+disturbancemayexist.InFig.18,thecrosstrackerrorandthecourse
+angleerrorduringtheexperimentareshown,respectively.Likeinthe
+linearpathfollowing,therewasasteady-stateerrorinboththecross
+track error and the course angle error. One noticeable feature was
+thatthesignofthesteady-stateerrorswasalwayspositive(exceptfor
+the transient phase). This means that the vehicle tended to be on the
+rightsideofthecurrentpiecewiselinearpath.Similarly,thedirection
+of the hardover turning of policies A and B was always in the same
+direction(portsideturning).Thisphenomenoncouldbefoundinboth
+thelinearandthesearchpathcase,aswellasinboththeexperiment
+andthesimulationdata.IntheresultofpolicyD,boththecrosstrack
+and course angle error tends to be stabilized as soon as the abrupt
+errorisproducedbywaypointtransition.Overall,wecansaythatthe
+reinforcementlearning-basedcontrolpoliciespossessedacontrolhabit,
+Fig. 14. Comparison result of the trajectory of linear path-following using different whichresultedinadistinctivemaneuverundercertainconditions.At
+typesofsteeringcontroller. theinitialtrainingstage,suchhabitsresultedindrawbacksinthepath-
+following capability, preventing the vehicle from properly following
+Table1 its target path. However, as the training proceeded, the control habit
+ComparisonresultoftheoverallRMSandsteadystateC.T.E.(CrossTrackError)and
+tended to be eliminated and the control capability tended to develop
+C.A.E.(CourseAngleError)duringthelinearpathfollowingvalidation.Differenttypes
+by itself. This phenomenon could also be found in the learning curve
+andstagesofsteeringcontrollersarecompared.
+(Fig.8),wheretheaccumulatedrewardvalueincreasedmonotonically
+Performance DDPG DDPG DDPG DDPG DQN PID
+index (A) (B) (C) (D) as the training proceeded. Although we can be empirically aware of
+the existence of the control habit and its effect on the path-following
+RMS
+C.T.E. 17.37 7.95 4.35 3.23 3.40 3.61 performance,becauseofthemassivenumberoftrainingvariablesand
+(m) the complex structure of the policy network, it was impossible to
+Steady-State provide an analytical reason as to why such defects were produced
+C.T.E. – – 1.81 0.27 0.48 0.21 andhowthecontrolhabitgeneratedsuchdistinctivemaneuvers.Thisis
+Error(m) oneofthedrawbacksoftheDRL-basedcontroller.Incasesinvolvinga
+RMS massivedeepneuralnetwork,itishardtoprovideananalyticalreason
+C.A.E. 103.28 88.44 20.46 5.10 5.52 4.79
+as to why such behavior is produced, which makes it more difficult
+(◦)
+to analyze the produced result. Similarly, there is a limitation on
+Steady-State
+analyticalstabilityanalysisoftheoverallsystemwhenusingamassive
+C.A.E. – – 17.82 0.76 1.76 0.44
+(◦) andcomplexdeepneuralnetwork.Insuchcase,insteadofanalyticway,
+thestabilityofthecontrollerisoftenprovedbytheempiricalwaysuch
+asrepeatedvalidationfieldtests(Rodriguez-Ramosetal.,2019).
+Accordingtothelearningcurve(Fig.8),theaveragerewardvalue
+Because of this tendency, sometimes the sub-optimal action produces of policies A, B, and C was not fully developed at the stages. Such
+overshoot during the control. To suppress the overshoot, a control underdevelopment could also be found in the activation history of
+inputwithoppositedirectionischosenandbyrepeatingthisprocess, eachhiddennodeinapolicynetwork.Fig.20showsthehistogramof
+chatteringoccurs.InthecaseoftheDDPG-basedcontroller,duetothe theprobabilityofeachhiddennodebeingactivatedduringthelinear
+continuous action space characteristics, there exists no such problem, path-followingscenario.Forthefaircomparison,wehavelimitedthe
+whileitfollowsthetargetpathwithcomparablecontrolperformanceas period of comparison as an initial transient phase (until the course
+theconventionalPIDcontroller.SincetheconventionalPIDcontroller angle error reaches 5% of its initial value). By doing this, the time
+is designed for SISO (single input–single output) system, the control lengthofthesteadystatedoesnotaffecttothehistogramdistribution.
+commandofthePIDcontrollerdependsononlythecourseangleerror. InthecaseofpolicyA,accordingtoFig.20(a),thehiddennodestended
+However,inthecaseoftheDRL-basedcontroller,boththecrosstrack to be either always inactive or always active. This means that only a
+errorandcourseangleerroraresimultaneouslyusedforcalculatingthe small number of hidden nodes produced a control action, whereas a
+controlcommand.Suchcapabilitytoconsidermultipleprocessvariable number ofnodesdid not playany role inproducinga control action.
+isoneofthecharacteristicsoftheDRL-basedcontroller.(SeeFig.15.) This tendency tended to gradually vanish as the training proceeded.
+Table 1 describes the comparison result of each controller during In the case of policy D, the number of nodes with varying activation
+thelinearpathfollowingvalidations. probabilitiesseemedtobeuniformlydistributedcomparedtothehis-
+Thedynamiccharacteristicsoftherespectivecontrolpoliciesduring togram of policies A, B, and C. This implies that most of the hidden
+the linear path following could also be found during the search path nodesinthepolicynetworkparticipatedingeneratingacontrolaction
+following. Since the search path was composed of piecewise linear command. This is a desirable phenomenon because, by doing so, the
+paths,thehardover characteristicsinpoliciesAandB,andthesteady- policynetworkbecomesaccessibletotheneuralnetwork’sfullcapacity
+state error characteristic in policy C were also found in the search ofapproximatingthepolicy.
+163
+J.Wooetal. OceanEngineering183(2019)155–166
+Fig.15. Historyofthecrosstrackerror𝑒 𝑦 andcourseangleerror𝜒̃ duringthelinearpath-followingusingdifferenttypesofthesteeringcontroller.
+Fig.16. Historyofthecontrolinput(steeringcommand𝛿𝑛 𝑑)duringthelinearpath-followingusingdifferenttypesofsteeringcontroller.
+Fig.17. Trajectorydatacollectedfromthegridsearchpath-followingexperiment(left)andfromthecorrespondingsimulation(right)withvariouscontrolpolicies.
+164
+J.Wooetal. OceanEngineering183(2019)155–166
+Fig.18. Historyofthecrosstrackerror𝑒 𝑦 andcourseangleerror𝜒̃ duringthegridsearchpath-followingexperimentswithvariouscontrolpolicies.
+Fig.19. Historyofthecontrolinput(steeringcommand𝛿𝑛 𝑑)duringthegridsearchpath-followingscenario.
+Fig.20. Histogramoftheprobabilityofeachhiddennodebeingactivatedduringthelinearpath-followingexperiment.
+165
+J.Wooetal. OceanEngineering183(2019)155–166
+5. Conclusion Garus,J.,Zak,B.,2010.Usingofsoftcomputingtechniquestocontrolofunderwater
+robot.In:MethodsandModelsinAutomationandRobotics(MMAR),201015th
+In this work, we proposed a deep reinforcement learning-based InternationalConferenceon.IEEE,pp.415–419.
+Kucik,D.,Reconnaissanceusingunmannedsurfacevehiclesandunmannedmicro-aerial
+controller for path following of an unmanned surface vehicle (USV).
+vehicles,GooglePatents,USPatent6,712,312,2004.
+A deep deterministic policy gradient (DDPG) algorithm was used to Lekkas,A.M.,Fossen,T.I.,2012.Atime-varyinglookaheaddistanceguidancelawfor
+construct the steering controller, and with the use of repeated path- pathfollowing.Arenzano,Italy.
+following simulation, the learning-based control policy was trained. Lillicrap, T.P., Hunt, J.J., Pritzel, A., Heess, N., Erez, T., Tassa, Y., Silver, D.,
+Wierstra, D., 2015. Continuous control with deep reinforcement learning. arXiv
+While the training proceeded, four different control policies were ex-
+preprintarXiv:1509.02971.
+tractedinconsecutiveorder.Theextractedcontrolpolicieswerethen
+Lu, Y., Zhang, G., Sun, Z., Zhang, W., 2018. Robust adaptive formation control of
+implemented in a full-scale USV to validate its path-following capa- underactuated autonomous surface vessels based on MLP and DOB. Nonlinear
+bility. According to the results of the path-following simulations and Dynam.94(1),503–519.
+experiments, the extracted control policy tended to possess a control Magalhães,J.,Damas,B.,Lobo,V.,2018.Reinforcementlearning:Theapplicationto
+autonomous biomimetic underwater vehicles control. In: IOP Conference Series:
+habit. At the initial stage of the training, the control habit prevented
+EarthandEnvironmentalScience,vol.172.(1),IOPPublishing,pp.12–19.
+thevehiclefromproperlyfollowingthetargetpath.Thisphenomenon Majohr,J.,Buch,T.,2006.Modelling,simulationandcontrolofanautonomoussurface
+wasduetotheinadequatetrainingofthepolicynetwork,andwefound marinevehicleforsurveyingapplicationsMeasuringDolphinMESSIN.IEEControl
+thatthehiddennodesinthepolicynetworkwerenotuniformlyactive Eng.Ser.69,329.
+Meng,W.,Guo,C.,Liu,Y.,Yang,Y.,Lei,Z.,2012.Globalslidingmodebasedadaptive
+atthisstageofthetraining.Asthetrainingstagecontinued,thepath-
+neural network path following control for underactuated surface vessels with
+followingperformancetendedtodevelop,resultinginadecreaseinthe
+uncertain dynamics. In: Intelligent Control and Information Processing (ICICIP),
+cross track error and the course angle error. The self-learning ability 2012ThirdInternationalConferenceon.IEEE,pp.40–45.
+of the USV controller by interacting with the nearby environment is Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A.A., Veness, J., Bellemare, M.G.,
+one of the most distinctive features of the proposed method. Such Graves,A.,Riedmiller,M.,Fidjeland,A.K.,Ostrovski,G.,etal.,2015.Human-level
+controlthroughdeepreinforcementlearning.Nature518(7540),529.
+capabilitycanbeappliedtosolveaproblemdealingwiththeuncertain
+Mu, D., Wang, G., Fan, Y., Sun, X., Qiu, B., 2017. Adaptive LOS path following for
+environmentalcondition. a podded propulsion unmanned surface vehicle with uncertainty of model and
+In future work, it may be beneficial to replace simulation-based actuatorsaturation.Appl.Sci.7(12),1232.
+training with experimental data-based training or real-time training. Naeem, W., Sutton, R., Chudley, J., Modelling and control of an unmanned surface
+vehicleforenvironmentalmonitoring,in:UKACCInternationalControlConference,
+In addition, a reinforcement learning-based controller for disturbance
+August,Glasgow,Scotland,2006.
+rejectioncouldbedevelopedtodealwithunmodeledandtime-varying
+Nelson,D.R.,Barber,D.B.,McLain,T.W.,Beard,R.W.,2007.Vectorfieldpathfollowing
+environmental disturbance. Moreover, the reinforcement learning- forminiatureairvehicles.IEEETrans.Robot.23(3),519–529.
+basedcontrollercanbeextendedtomuchbroaderresearchareassuch Niu,H.,Lu,Y.,Savvaris,A.,Tsourdos,A.,2016.Efficientpathfollowingalgorithmfor
+astrajectorytrackingorcollisionavoidanceaswell. unmannedsurfacevehicle.In:OCEANS2016-Shanghai.IEEE,pp.1–7.
+Rodriguez-Ramos, A., Sampedro, C., Bavle, H., De La Puente, P., Campoy, P., 2019.
+AdeepreinforcementlearningstrategyforUAVautonomouslandingonamoving
+Acknowledgments platform.J.Intell.Robot.Syst.93(1–2),351–366.
+Shin,J.,Kwak,D.J.,Lee,Y.-i.,2017.Adaptivepath-followingcontrolforanunmanned
+This work was supported by (a) Research Institute of Marine Sys- surfacevesselusinganidentifieddynamicmodel.IEEE/ASMETrans.Mechatronics
+22(3),1143–1153.
+temsEngineeringofSeoulNationalUniversity,RepublicofKorea,(b)
+Silver,D.,Lever,G.,Heess,N.,Degris,T.,Wierstra,D.,Riedmiller,M.,Deterministic
+AgencyforDefenseDevelopment(UD160009DD)ofRepublicofKorea.
+policygradientalgorithms,in:ICML,2014.
+Sonnenburg, C.R., Woolsey, C.A., 2013. Modeling, identification, and control of an
+References unmannedsurfacevehicle.J.FieldRobotics30(3),371–398.
+Sutton,R.S.,Barto,A.G.,1998.IntroductiontoReinforcementLearning,vol.135,MIT
+PressCambridge.
+Bertaska, I.R., 2016. Intelligent Supervisory Switching Control of Unmanned Surface
+Woo, J., 2018. Collision Avoidance for an Unmanned Surface Vehicle Using Deep
+Vehicles(Ph.D.thesis).FloridaAtlanticUniversity.
+ReinforcementLearning(Ph.D.thesis).SeoulNationalUniversity.
+Bertaska, I.R., von Ellenrieder, K.D., 2018. Experimental evaluation of supervisory
+Woo, J., Kim, N., 2016. Vector field based guidance method for docking of an
+switchingcontrolforunmannedsurfacevehicles.IEEEJ.Ocean.Eng.
+unmannedsurfacevehicle.In:TheTwelfthISOPEPacific/AsiaOffshoreMechanics
+Bertram, V., 2008. Unmanned surface vehicles-a survey. Skibsteknisk Selskab,
+Symposium.InternationalSocietyofOffshoreandPolarEngineers.
+Copenhagen,Denmark1,1–14.
+Woo,J.,Park,J.,Yu,C.,Kim,N.,2018.Dynamicmodelidentificationofunmanned
+Bibuli,M.,Bruzzone,G.,Caccia,M.,Lapierre,L.,2009.Path-followingalgorithmsand
+surfacevehiclesusingdeeplearningnetwork.Appl.OceanRes.78,123–133.
+experimentsforanunmannedsurfacevehicle.J.FieldRobotics26(8),669–688.
+Yiannis, P., Mitchel, W., Operations architecture and vector field guidance for the
+Carreras, M., Ridao, P., El-Fakdi, A., 2003. Semi-online neural-Q/spl I. bar/leaming
+riverscoutsubscaleunmannedsurfacevehicle,in:DefenceandHomelandSecurity
+forreal-timerobotlearning.In:IntelligentRobotsandSystems,2003.(IROS2003).
+Symposium,2013,pp.55–60.
+Proceedings.2003IEEE/RSJInternationalConferenceon,vol.1.IEEE,pp.662–667.
+Yoo,B.,Kim,J.,2016.Pathoptimizationformarinevehiclesinoceancurrentsusing
+Cheng,Y.,Zhang,W.,2018.Concisedeepreinforcementlearningobstacleavoidance
+reinforcementlearning.J.Mar.Sci.Technol.21(2),334–343.
+forunderactuatedunmannedmarinevessels.Neurocomputing272,63–73.
+Zhang, G., Deng, Y., Zhang, W., Huang, C., 2018. Novel DVS guidance and path-
+Corfield,S.,Young,J.,2006.Unmannedsurfacevehicles-gamechangingtechnologyfor
+followingcontrolforunderactuatedshipsinpresenceofmultiplestaticandmoving
+navaloperations.IEEControlEng.Ser.69,311.
+obstacles.OceanEng.170,100–110.
+Cui,R.,Yang,C.,Li,Y.,Sharma,S.,2017.AdaptiveneuralnetworkcontrolofAUVs
+Zhang,R.,Tang,P.,Su,Y.,Li,X.,Yang,G.,Shi,C.,2014.Anadaptiveobstacleavoid-
+with control input nonlinearities using reinforcement learning. IEEE Trans. Syst.
+ancealgorithmforunmannedsurfacevehicleincomplicatedmarineenvironments.
+ManCybern.Syst.47(6),1019–1029.
+IEEE/CAAJ.Autom.Sin.1(4),385–396.
+DePaula,M.,Acosta,G.G.,2015.Trajectorytrackingalgorithmforautonomousvehicles
+Zhu,J.,Wang,J.,Zheng,T.,Wu,G.,2016.Straightpathfollowingofunmannedsurface
+using adaptive reinforcement learning. In: OCEANS’15 MTS/IEEE Washington.
+vehicleunderflowdisturbance.In:OCEANS2016-Shanghai.IEEE,pp.1–7.
+IEEE,pp.1–8.
+Fossen, T.I., 2002. Marine control system-guidance, navigation and control of ships,
+rigsandunderwatervehicles.Mar.Cybemetics.
+166

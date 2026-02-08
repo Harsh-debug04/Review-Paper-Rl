@@ -1,0 +1,403 @@
+A Review on Deep Reinforcement Learning-Based
+UAV Navigation and Conflict Resolution in
+Unknown Environments
+Harshvardhan Pandey Adya Chauhan
+Dept. of Artificial Intelligence and Machine Learning Dept. of Artificial Intelligence and Machine Learning
+Manipal University Jaipur Manipal University Jaipur
+Jaipur, India Jaipur, India
+harshpandey145@gmail.com adyachauhan.04@gmail.com
+Yash Prasad
+Dept. of Artificial Intelligence and Machine Learning
+Manipal University Jaipur
+Jaipur, India
+eyash.prasad24@gmail.com
+Abstract—Unmanned Aerial Vehicles or UAVs have become policies through experiences accumulated in simulated envi-
+very popular. They have found applications in diverse fields ronments, notwithstanding the criteria of partial observability
+includingsurveillance,disasterresponse,logisticsandinspections
+and dynamic constraints. Thus, DRL has allowed navigation
+of unsafe situations and defence missions. However, their ability
+policy learning that signifies on selection of optimal policy
+to navigate through complex, dynamic environments in case of
+communication loss is important. Traditional approaches lack based on prior training. Integrating high-dimensional inputs
+adaptability and are computationally expensive. In response to such as images and LIDAR data while accommodating real-
+this, researchers have integrated Deep Reinforcement learning time decision-making without exhaustive path computation
+techniques. This paper reviews six studies on DRL-based and
+makes these models ideal for dynamic environments.
+hybrid approaches for UAV navigation and collision avoidance.
+They are analyzed based on problem formulation, approaches,
+architectural innovations, performance and real-world applica-
+B. Objectives and Scope
+tions.Acomparativestudyisprovidedevaluatingtheirstrengths,
+limitations, and potential for future research.
+This review critically analyzes the following seven key
+Index Terms—unmanned aerial vehicles, deep reinforcement
+papers:
+learning, navigation, obstacle avoidance, collision resolution,
+autonomous systems 1) Deep-reinforcement-learning-based UAV autonomous
+navigation and collision avoidance in unknown environ-
+I. INTRODUCTION
+ments (FRDDM-DQN)
+A. Background and Motivation 2) Adaptive Multi-Agent Reinforcement Learning Solver
+for Tactical Conflict Resolution
+Unmannedaerialvehicles(UAVs),widelyknownasdrones,
+3) UAV Navigation in 3D Urban Environments with
+have come to occupy a vital place in today’s automation
+Curriculum-based Deep Reinforcement Learning
+environment. Their compactness and easy manoeuvrability at
+4) Combining Motion Planner and Deep Reinforcement
+an ever-decreasing cost have opened their applications into
+LearningforUAVNavigationinUnknownEnvironment
+the domains of military, commercial, and industrial. One such
+5) Autonomous UAV Navigation with Adaptive Control
+hugechallengeistheautonomousnavigationofthesevehicles
+Based on Deep Reinforcement Learning
+in entirely unknown or partly known environments. Classical
+6) Multi-Level-Frontier Empowered Adaptive Path Plan-
+pathgenerationtechniqueslikeA*,Rapidlyexploringrandom
+ning for UAVs in Unknown Environments
+trees(RRT),andartificialpotentialfieldshavethelimitationof
+beingdependentonpre-existingmapsandarecomputationally Eachpaperisanalyzedwithrespecttoproblemformulation,
+inefficient in dynamic environments. They are designed and model architecture, training methodology, evaluation metrics,
+trained for static ideal-world scenarios, making them unreli- and experimental outcomes. The structure of this paper is as
+able in unknown environments. follows: Section 2 reviews related works and methodologies,
+Deep reinforcement learning (DRL) is a promising Section 3 highlights indepth analysis of each paper. Section
+paradigm that has transformed the approach to solving navi- 4 offers the comparative analysis along with a proposed
+gationproblems.Thisapproachallowsagentstolearnoptimal methodology, while Section 5 concludes the review.
+II. LITERATUREREVIEW Record Tree (HSRT), aimed at recovering dead ends, is
+utilized for enhancing exploration efficiency. This method,
+The integration of Deep Reinforcement Learning (DRL) in
+while computationally light, is heuristic in nature, so it lacks
+the field of Unmanned Aerial Vehicles has attracted signif-
+adaptabilityandthecapabilitytolearnasDRL-basedsolutions
+icant attention particularly based on partially observable and
+do.Anoverviewofthestudiesdemonstratesvaryingstrategies
+dynamicenvironments.Thissectionpresentsafewstudiesthat
+employedtoenhanceUAVnavigationthroughDRLandhybrid
+contributed towards this field.
+systems. Despite the enormous progress made in this field,
+Wang et al. [1] proposed the FRDDM-DQN framework
+challenges like computational efficiency and the true applica-
+that integrated Faster R-CNN for visual obstacle detection
+bility of UAVs, along with the adaptability of these UAVs in
+in place of convolutional neural networks and a Deep Q-
+a dynamic environment remain something to ponder. Future
+Network (DQN) for policy learning. They used a custom
+research should aim at addressing these gaps in the current
+mechanism called Data Deposit Mechanism (DDM) which
+literature, possibly through lightweight modelling techniques,
+prioritized safety-critical experiences in experience replay,
+testing in a real environment, or utilising innovative learning
+promotingconvergence.Thoughthemethodachievessuperior
+paradigms.
+performance in the simulated environments, higher computa-
+tional resource requirements and a lack of verification in real-
+III. IN-DEPTHANALYSISOFSELECTEDWORKS
+world settings remain major challenges.
+Fremond et al. [2] set out the Multi-Agent Reinforcement A. FRDDM-DQN for UAV Navigation and Obstacle Avoid-
+Learning (MARL) framework that utilized Proximal Policy ance
+Optimization (PPO) with Recurrent Neural Networks (RNNs)
+This work is concerned with autonomous UAV navigation
+to address the tactical conflict resolution of urban sky spaces.
+in GPS-denied environments in which traditional sensors, like
+They adhered to the centralized training with decentralized
+radar, are compromised by electronic jamming or simply do
+execution (CTDE) paradigm. This enforces scalability and
+notworkanymore.Theactualchallengehereistoenablesome
+robustness in different conflict scenarios of the domain. How-
+form of obstacle avoidance using visual information.
+ever, the presumption of perfect communication and full-state
+1) Methodology: The authors introduce a hybrid architec-
+observability limits the applicability to real-world scenarios.
+ture that includes:
+Carvalho et al. [3] implemented a curriculum learning
+methodology in DQN for facilitating UAV navigation within • Fast R-CNN for visually detecting obstacles
+complex 3D cities. They revealed that while increasing the • DQNs for learning policies
+difficultybystepwiseadditionsimprovedthegeneralizationof • Data Deposit Mechanism (DDM) for prioritizing experi-
+policy and speed of convergence, their work did not involve ence replay
+any temporal modelling components, like Long Short-Term
+Training takes place in a 3D simulation environment using
+Memory (LSTM) networks, thereby affecting performance
+image input. Faster R-CNN and DQN are separately trained
+when one talked of dynamic environments.
+as part of a training procedure that is designed to reduce the
+Xue and Chen [4] made RLPlanNav. They combined a top-
+complexity of merging the two.
+level DRL agent with a constantly working motion planner
+2) Innovations:
+on the minor end (EGO-planner), where the high-level plan is
+generated and used for trajectory generation. This high-level • Use of DDM, which selectively retains safety-critical
+experiences, enhancing convergence.
+DRLagentarchitecturecomplementsthegoodperformanceof
+learning-based decision-making. It made the low-end motion • Atwo-stagetrainingpipelinetoreducethetimesrequired
+for retraining for dynamic scenarios.
+planner dependent on deterministic planning, making the out-
+comes smoother and more feasible; however, this experiment 3) Results: Outperformed YOLO-based methods and vari-
+wasconductedatstaticenvironmenttypes,thusraisingdoubts antsoftheDQN(DuelingDQN,DDQN),achievingimproved
+on its applicability towards dynamic context scenarios with navigation success and convergence times while avoiding
+simple shape obstacles. obstacles.
+Yinetal.[5]introducedtheGARTD3,aframeworkforDRL 4) Limitations:
+withattentionmechanismsandvelocity-constrainedlossfunc-
+• Entirely simulation-based: no real-world deployment.
+tions that realize adaptive control in 3-dimensional environ-
+• Heavy computational costs from object detection during
+ments. They used LSTMs to provide temporal awareness and
+inference.
+also incorporated an attention module for navigation-obstacle
+avoidance balancing. Even though it was very effective, there
+B. Adaptive Multi-Agent Reinforcement Learning
+were serious practical limitations regarding computational
+demands and sensitivity to hyperparameter tuning. 1) Problem Statement: Targets tactical conflict resolution
+Duan et al. [6] described a non-learning-based method for (TCR) of UAVs within a shared urban airspace. It is an
+extremely efficient path planning in unknown environments environment of decentralized UTM (unmanned traffic man-
+that used a multi-level octree voxelization. Historical State agement) with heavy UAV traffic.
+TABLE I: Comparison of DRL-based UAV Navigation Approaches (Part 1)
+Author Action State Reward Algorithm Environment
+Wangetal.(2024) Discrete Cameraimages+po- Destination reached, FRDDM-DQN 3D simulated visual envi-
+actions from sitionalinfo collisions, out-of- (Faster R-CNN + ronment with varied obsta-
+DQN boundpenalties DQN) clelayouts
+Fremondetal.(2024) Speed and Multi-UAV positional Safety, efficiency, Multi-Agent PPO Urban airspace simulator
+altitude states conflictavoidance withRNN with 9 tactical conflict sce-
+adjustments narios
+Carvalhoetal.(2023) Discrete 3D Position, battery Efficiency, collisions, Curriculum-Guided Simulated urban 3D maps
+movements level,obstaclemaps energy-basedshaping DeepQ-Learning withincreasingcomplexity
+XueandChen(2024) Local RGB image, partial Goal achievement, RLPlanNav (LSTM- Randomstaticobstaclesim-
+waypoint maps smooth path, DRL + Classical ulations with motion plan-
+targets collisions Planner) ner
+Yinetal.(2024) Continuous 3D coordinates, ob- Distance, obstacle Guide Attention TD3 Complex 3D simulation
+control: staclevectors avoidance, velocity (GARTD3) with with adaptive low-altitude
+velocity + constraints LSTM+Attention flight
+altitude
+Duanetal.(2024) Dynamic Multi-resolution Forward movement, Multi-Level Frontier Complex unknown voxel
+waypoints via voxelmap efficiency, dead-end Planner spaces with octree resolu-
+frontiervoxels penalties tioncontrol
+TABLE II: Comparison of DRL-based UAV Navigation Approaches (Part 2)
+Author NoveltyFactor Limitations EvaluationMetrics
+Wangetal.(2024) Faster R-CNN optimized for Limited to simulated environ- Reward, navigation success
+UAV kinematics + Data De- ment;highpreprocessingcost rate, collision count, episode
+positMechanism length
+Fremondetal.(2024) CentralizedtrainingwithRNN Assumes reliable comms; Conflictresolutionrate,devia-
+generalization + ACAS-based lacksreal-worlddata tion from flight plan, success
+evaluation underMonteCarlocases
+Carvalhoetal.(2023) Curriculumlearning+parallel Q-learning stability issues in Reward trajectory,
+trainingforspeed largespaces convergence speed, success
+acrosscurriculumlevels
+XueandChen(2024) Hierarchical DRL + classical Limitedtostaticobstacles;no Path smoothness, trajectory
+EGOplannerintegration dynamicreactivity feasibility,successrate
+Yinetal.(2024) Guide attention + adaptive Highcomputationduetoatten- Navigation success, reward,
+velocity-constrainedloss tionandmemory collision rate, velocity adher-
+ence
+Duanetal.(2024) Multi-resolution voxel model- Heuristic-based; not learning- Planning time, dead-end es-
+ing+HSRTbacktracking capable caperate,routeefficiency
+2) Methodology: • Assumes full state observability and perfect communica-
+• Multi-Agent Reinforcement Learning (MARL) frame- tion
+work based on PPO
+• Centralized Training and Decentralized Execution C. Curriculum-based DRL in 3D Urban Environments
+(CTDE)
+1) Problem Statement: To navigate a broad expanse of
+• Common policy architecture across the UAVs 3D urban constructs with concerns on navigation, obstacle
+• Recurrent Neural Networks (RNN) adopted to generalize avoidance, and energy-optimization.
+the varying intruder scenarios
+2) Methodology:
+3) Innovations:
+• Curriculum Learning with DQN
+• Validation under Airborne Collision Avoidance Sys-
+• Multi-agent training done in parallel
+tems(ACAS) standards
+• Customizedrewardfunctionconcerningenergyconsump-
+• Realistic airspace configurations including shared routes
+tion, time, and distance
+with single/multiple conflict points
+3) Innovations:
+• Ninesyntheticcasestudiessimulatingavarietyofconflict
+scenarios • Stages of curriculum with increasing complexity
+4) Results: • Transfer of policies effectively to an environment with
+more than 22 million discrete states
+• Conflict resolution above 99.9% in multi-agent encoun-
+ters. 4) Results:
+• Robustness across scenarios with varying agent density • Significantly reduced convergence time and increased
+and dynamics.
+rewards versus baseline DQN
+5) Limitations: • Successful deployment over a set of maps with varying
+• Simulation-based without hardware-in-the-loop testing density and complexity
+5) Limitations: 3) Innovations:
+• No temporal model employed (like LSTM) • Combines the advantages of frontier-based as well as
+• Static assumptions upon environments sampling-based approaches
+• Adaptive modelling saves up to 20% of memory and
+D. RLPlanNav: DRL + Classical Planner
+planning time.
+1) Problem Statement: Trajectory planning, is smooth and
+4) Results:
+kinematically feasible, in unknown environments.
+2) Methodology: • Great success rates in three complicated test environ-
+ments.
+• Upper-level DRL (Recurrent Deterministic Policy Gradi-
+ent) for sub-goal selection • Planning is faster but less resource-consuming.
+• Lower-level classical planner (EGO-planner) for trajec- 5) Limitations:
+tory smoothing
+• Not learning-based, policy generalization is absent.
+• Use of RGB input from the simulated sensor suite • Dynamic obstacles not considered.
+3) Innovations:
+• Hierarchical control: DRL for decision-making, planner IV. COMPARATIVEANALYSIS
+for control execution
+• LSTM-enhanced DRL to escape local minima The comparative evaluation has been planned to explain
+4) Results: Outperformsbothstandaloneplannersandend- better UAV navigation and conflict resolution in an unknown
+to-end DRL in terms of energy efficiency, path smoothness, environment. The analysis compares each of the methods
+and success rate. along important dimensions such as learning paradigm, ar-
+5) Limitations: chitecture of the network, perception and planning strategies,
+decision-makingscheme,typeofenvironment,andlimitations
+• Tested on static obstacles only
+observed.
+• Lacks scalability to large-scale dynamic maps
+E. GARTD: Adaptive Navigation with Attention and Velocity
+A. Comparison of Methodology and Architecture
+Constraints
+In Table III, approaches are summarized for each partic-
+1) Problem Statement: Adaptive altitude and speed control
+ular work. It can be identified from the table that hybrid
+for UAVs in highly dynamic, cluttered, low-altitude 3D envi-
+methodologies,suchasRLPlanNav,allowbothlearning-based
+ronments.
+reasoning and deterministic planning to achieve potentially
+2) Methodology:
+smooth path generation, whereas other techniques mostly rely
+• Guide Attention Mechanism to switch focus between onlearnedpolicies.Enhancementsusingattentionandmemory
+navigation and avoidance
+(such as LSTM) as in GARTD3 indicate potential in dynamic
+• TD3 with LSTM environments.
+• Velocity-constrained actor loss to improve speed control
+3) Innovations:
+B. The Environment: Level of Adaptability and Realism
+• Adaptive control in full 3D
+• Custom reward and attention layers These results suggest that GARTD3 and MARL-PPO excel
+4) Results: 14% increase in success rate, 14% reduction in in dynamic multi-agent environments while curriculums will
+result in better stability and convergence in structured yet
+collision rate over baselines.
+complicated 3D airspaces. Classical planners remain compu-
+5) Limitations:
+tationally efficient, but lack adaptiveness based on learning.
+• Computationally expensive
+• Requires extensive tuning of attention mechanisms
+TABLE III: Comparison of Methodologies and Architectures
+F. Path Planning on Multi-Level Frontiers Authors LearningParadigm Planner/Module
+Wangetal.(2024) DeepQ-Learning Rule-basedPlanner
+1) Problem Statement: Efficient real-time path planning
+Fre´mondetal.(2024) Actor-CriticRL Decentralized
+by uncharted front-based modelling under unknown environ- Coordination
+ments. Carvalhoetal.(2023) Value-basedRL Exploration-guided
+Planner
+2) Methodology:
+XueandChen(2024) Hybrid DRL + Classical Low-level Determin-
+• Multi-level Octree voxelization for frontier selection Planner isticPlanner
+• HistoricalStateRecordTree(HSRT)forrecoveringfrom Yinetal.(2024) PPO with Temporal Fea- Learned Policy Navi-
+tures gation
+dead ends
+Duanetal.(2024) Non-learningHeuristic Greedy Exploration
+• Adaptive voxel granularity according to environmental Planner
+density Carvalhoetal.(2023) Value-basedDRL NA
+TABLE IV: Environment Complexity and Evaluation
+• Curriculum learning systems exhibit superior learning
+Author Environment Key Challenges Limitations curves but require a further infusion of temporal aware-
+Addressed ness to truly account for dynamic applications.
+Wangetal. Simulated 2D Visual No dynamic
+• Non-learning planners such as the Frontier method are
+(2024) with visual perception, agents, high
+obstacles Obstacle computation very fast and easy to implement but generalize poorly
+Avoidance underunknown and adversarial conditions.
+Fre´mondet 3D Simulated Multi-agent col- Perfect commu-
+Hence, the comparative analysis indicates that while the
+al.(2024) Urban (Conflict lision avoidance, nicationassumed
+Resolution) tacticaldecisions DRL-basedsystemsoffertheutmostadaptabilityinbehaviour
+Carvalhoet 3D Grid-based Sparse rewards, No temporal andautonomy,theirreal-worldapplicabilityforUAVsremains
+al.(2023) CityModel increasing modeling
+contingent upon improvements in the efficiency of compu-
+complexity
+Xue and 3D Forest Map Safepathgenera- Lacks dynamic tation, robustness against partial observability, and dynamic
+Chen withObstacles tion,Hierarchical obstacle engagements in multi-agent environments. The combination
+(2024) decision-making adaptation
+of curriculum-learning, memory models, and hybrid planning
+Yin et al. 3D Simulated Real-time High
+(2024) with Dynamic control, velocity hyperparameter offersthemostpromisingpathforupcomingUAVnavigational
+Obstacles safety, temporal sensitivity systems.
+awareness
+Duan et al. Voxelized3DEx- Efficient Static rule-based, V. DISCUSSIONANDFUTUREDIRECTIONS
+(2024) plorationSpace exploration, lacksadaptability
+dead-end The integration of DRL into UAV navigation systems rep-
+recovery
+resents a significant step towards in achieving full autonomy.
+Carvalhoet Complex3Dwith Generalization in Not tested in
+al.(2023) task difficulty deep spaces, re- dynamic multi- However, a few key challenges remain unsolved:
+scheduling wardshaping agentsetups • Real-World Deployment: Many models are yet to be val-
+idated on real UAV hardware in dynamic environments.
+TABLE V: Performance Evaluation of DRL-based UAV Nav- • Memory & Computation: LSTM, attention mechanisms,
+igation Methods andpolicygradientsrequirehighcomputationalresources
+for training and have high inference time.
+Author Success Collision Avg.
+Rate Rate Episode • Safety Assurance: There is a lack of any formal safety
+(%) (%) Length verification framework for learned policies.
+Wang et al. 92.5 5.3 210steps
+Future research directions include:
+(2024)
+Fremond et 89.1 3.8 185steps • Lifelonglearningapproacheswouldenabledronestocon-
+al.(2024)
+tinuouslyimprovetheirnavigationcapabilitiesthroughout
+Carvalho et 86.7 7.2 195steps
+al.(2023) their operational lifespan, rather than relying solely on
+Xue and 90.4 4.9 170steps pre-deployment training.
+Chen(2024)
+• Federated learning could revolutionize how drone fleets
+Yin et al. 93.2 3.5 200steps
+(2024) learn collectively while maintaining data privacy and
+Duan et al. 88.5 6.0 230steps reducing communication overhead.
+(2024) • Incorporating formal safety guarantees into DRL nav-
+igation systems would address critical regulatory and
+subsectionPerformanceBenchmarking:ASynopsisTosum-
+practical concern.
+marize the impacts of performance on these methodologies,
+Table V shows some of the key metrics across the six VI. CONCLUSION
+approaches. While RLPlanNav performed at the highest suc-
+In-depthanalysisofhowDeepReinforcementLearningand
+cess rate in a static environment, GARTD3 and MARL-
+hybridtechniquesareappliedtodronenavigationproblemsin
+PPO exhibited good performance in dynamic and uncertain
+unpredictable environments are reviewed across the literature.
+situations. The forward data deposit mechanism in FRDDM-
+The paper encompasses a myriad of methodologies, extend-
+DQN accelerates convergence but adds to complexity.
+ing from basic DQNs for single-drone scenarios to highly
+C. Key Observations sophisticated multi-agent systems with implementations of
+• Hybridzones(e.g.,RLPlanNav)mixflexibilityfromDRL PPO algorithms and memory-aware actor-critic architectures.
+with reliability from classical planning, yet fail to adapt Despitetheseworks,thereseemstobeagranddividethatstill
+in truly dynamic settings. separatessimulationperformancefromreal-worlddeployment.
+• Memory and attention-augmented DRL, GARTD3, ex- Persistentchallengesarebeingencounteredwhiletransitioning
+celled in robust real-time control under dynamic uncer- from controlled test environments to real-world operations:
+tainties. • The tracking of dynamic environments, where ever-
+• MARL-PPO systems for multi-agent utilization of changing conditions may disrupt the agents.
+airspace must be hardened against disruptions of com- • Adhering to carefully defined safety constraints is a
+munication. necessity.
+• Computation on resource-constrained drone hardware is
+still limited.
+• Ensuring consistent performance over various environ-
+mental conditions.
+Theoretical aspects have great promise, but not able to solve
+many practical deployment issues that need thorough research
+that is still to be conducted before these systems can be de-
+ployed in mission-critical scenarios. Hybrid approaches com-
+bining classical navigation guarantees with DRL approacha-
+bility are the most promising.
+REFERENCES
+[1] F. Wang et al., “Deep-reinforcement-learning-based UAV autonomous
+navigationandcollisionavoidanceinunknownenvironments,”Chinese
+JournalofAeronautics,vol.37,no.3,pp.237-257,2024.
+[2] R. Fremond et al., “Adaptive Multi-Agent Reinforcement Learn-
+ing Solver for Tactical Conflict Resolution,” IEEE Transactions on
+AerospaceandElectronicSystems,2024.
+[3] K. Carvalho et al., “UAV Navigation in 3D Urban Environments with
+Curriculum-basedDeepReinforcementLearning,”ICUAS,2023.
+[4] Y.XueandW.Chen,“CombiningMotionPlannerandDeepReinforce-
+ment Learning for UAV Navigation in Unknown Environment,” IEEE
+RoboticsandAutomationLetters,vol.9,no.1,2024.
+[5] Y. Yin et al., “Autonomous UAV Navigation with Adaptive Control
+BasedonDeepReinforcementLearning,”Electronics,vol.13,no.2432,
+2024.
+[6] P.Duanetal.,“Multi-Level-FrontierEmpoweredAdaptivePathPlanning
+forUAVsinUnknownEnvironments,”ICAIRC,2024.

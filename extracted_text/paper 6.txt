@@ -1,0 +1,1054 @@
+Thecurrentissueandfulltextarchiveofthisjournalisavailableat
+www.emeraldinsight.com/2049-6427.htm
+IJIUS Cooperative control of UAV
+1,3
+swarm via information measures
+Haoyang Cheng, John Page and John Olsen
+The School of Mechanical and Manufacturing Engineering,
+256
+University of New South Wales, Sydney, Australia
+Abstract
+Purpose–Thisstudyaimstoinvestigatetherule-baseddecentralisedcontrolframeworkforaswarm
+ofUAVscarryingoutacooperativegroundtargetengagementmissionscenario.
+Design/methodology/approach–Thisstudyistoinvestigatetherule-baseddecentralisedcontrol
+frameworkformissionswhichrequirehigh-levelcooperationbetweenteammembers.Thedesignofthe
+authors’controlstrategyisbasedonagent-levelinteractions.Differenttoacentralizedtaskassignment
+algorithm,thecooperationoftheagentsisentirelyimplicit.ThebehaviouroftheUAVsisgovernedby
+rulesetswhichultimatelyleadtocooperationatasystemlevel.Theinformationtheoreticmeasuresare
+adoptedtoestimatethevalueofpossiblefutureactions.Thepredictionmodelisfurtherconsideredto
+enhancetheteamperformanceinthescenariowheretherearetightcoupledtaskconstraints.
+Findings – The simulation study evaluates the performance of the decentralised controller and
+comparesitwithacentralisedcontrollerquantitatively.Theresultsshowthattheproposedapproach
+leads to a highly cooperative performance of the group without the need for a centralised control
+authority. The performance of the decentralised control depends on the complexityof the coupled
+taskconstraints.Itcanbeimprovedbyusingapredictionmodeltoprovideinformationsuchasthe
+intentionsoftheneighboursthatisnotavailablelocally.
+Originality/value–Theachievableperformanceofthedecentralisedcontrolwasconsideredtobelow
+duetotheabsenceofcommunicationandlittleglobalcoordinatinginformation.Thisstudydemonstrated
+thatthedecentralisedcontrolcanachievehighlycooperativeperformance.Theachievableperformance
+isrelatedtothecomplexityofthecoupledconstraintsandtheaccuracyofthepredictionmodel.
+Keywords UAV,Decentralizedcontrol,Simulation,Multi-agentsystem,Flight,Flightcontrol,
+Decentralizedcontrol
+Papertype Researchpaper
+Nomenclature
+F transitionmatrix
+z observationvector
+w,Q process noise and its covariance,respectively
+v measurement noise
+i, I information state contribution and its associated information matrix,
+respectively
+c,R observation noise and covariance matrix, respectively
+^y;Y informationstate and informationmatrix,respectively
+x,P target state and state covariance,respectively
+H(X),h(X) entropyofdiscreterandomvariablesandcontinuousrandomvariableX,
+respectively
+I(x,z) mutualinformationobtainedaboutarandomvariablexwithrespecttoa
+InternationalJournalofIntelligent random variable z
+UnmannedSystems
+Vol.1No.3,2013 a bearing angle ofthe target measured by the vehicle
+pp.256-275 x,Z distances ofthe target in x and ydirections
+r 204 E 9- m 64 e 2 ra 7 ldGroupPublishingLimited . .
+x; Z velocities of the targetin xand ydirections
+DOI10.1108/IJIUS-01-2013-0001
+1. Introduction Cooperative
+Withrecenttechnologicaladvancesinautonomouscontrolandcommunication,multi- control of UAV
+roboticsystemsarereceivingagreatdealofattentionduetotheirincreasedabilityto
+swarm
+carryoutcomplextasksinasuperiormannerwhencomparedtosingle-roboticsystems.
+Multipleautonomousagentsworkinginagroupexceedthesumoftheperformanceof
+theindividuals.Withrapidtechnologydevelopmentinunmannedaerialsystems(UAS),
+onboardcommunicationandcomputationcapacity,intensiveresearchhasbeencarried 257
+outonthe cooperative control of groupsof UAVs. The resultsof thisresearch on such
+systemscanbefoundinsearchandrescue,intelligence,surveillanceandreconnaissance
+(Bourgault et al., 2003; Furukawa et al., 2006; Nigam and Kroo, 2008; Ceccarelli et al.,
+2007). The cooperative control of UAVs is a complex problem that is dominated by
+uncertainty,limitedinformationandtaskconstraints.Bothcentralisedanddecentralised,
+decision and control algorithms have been developed to address this complexity.
+Centralised decision and control algorithms optimise timing and task constraints but
+require intensive computation and robust communication. Decentralised decision and
+controlalgorithmstradeoptimalityandpredictabilitywithrobustnessandadaptationto
+environmentalchanges.Aself-organised(SO)system,orswarm,istypicallyadecentralised
+controlsystemmadeupofautonomousagentsthataredistributedintheenvironment
+and follow stimulus response behaviours (Garnieret al., 2007). Examples from social
+insects, such as foraging and the division of labours show that SO systems can
+generate useful emergent behavioursatthe systemlevel.
+Significant research effort has been invested in recent years into the design and
+simulation of intelligent swarm systems (Bonabeau et al., 1999). Intelligent swarm
+systems can generally be defined as decentralised systems, comprised of relatively
+simple agents which are equipped with the limited communicational, computational
+and sensing abilities required to accomplish a given task (Altshuler et al., 2006).
+ApplyingtheseconceptstoaUAVswarmwasfirstexploredbyFrelingeretal.(1998).
+Theyexaminedwhether moderncommunication, sensorsand technologiesinrobotic
+architecture would permit the development of decentralised control to command
+aswarmoflowcostmunitions.Gaudianoetal.(2003)extendedtheworkofFrelinger.
+In their paper, they adopted random, repulsion, pheromone and global decentralised
+control strategies. In the research of Price (2006), ten self-organisation rules were
+implemented whose weight factors were collected into a single fitness function. This
+function was further refined using a genetic algorithm (GA) within the simulation.
+A similar technique was also adopted by De Vries and Subbarao (2011) who used
+apotentialfunctiontogeneratesteeringcommandstocontrolaswarmofquadrotors.
+Another widely adopted mechanism is digital pheromone maps that imitate the
+foragingbehaviourofants.Digitalpheromonesaremodelledonthepheromonefields
+oftheindividualvehicles.Bysynchronisingtheir mapstheUAVscoordinatetoavoid
+redundant searches (Erignac, 2007). Similar to digital pheromone maps, Scerri et al.
+(2007) used a binary Bayesian grid filter to represent the probability that there is
+a radio frequency emitter within the global map and applied a Rapidly expanding
+Random Tree path planner todetermine UAV paths forlocatingtargets.
+The previous research that applies swarm methodology was limited to relative
+simplescenarioswhichdonothavecomplextaskconstraints.Inthisstudy,theproblem
+of assigning multiple UAVs to time-dependant cooperative tasks is investigated.
+A time-dependent cooperative task is one that requires multiple agents to perform
+separatesubtaskssimultaneously,orwithintheavailabletimewindowsofcooperative
+agents(i.e.twoormoreagentsareassignedsubtaskswithinthesamemission,andthe
+IJIUS agentshavelimitedtimewindowstocompletetheirtasks).Suchproblemshavemainly
+1,3 been investigated by using centralised task assignment algorithms. Kingston and
+Schumacher(2005)intheir papersolvedthisproblemwithaMixedIntegerLinear
+Programme (MILP) that addressed task timing constraints and agent dynamic
+constraints togenerate aflyable path. AGAisusedtoefficiently searchthespaceof
+possible solutions andprovide thecooperative assignment(Shima andSchumachery,
+258 2005). The following assumptions and restrictions were added to their studies: first,
+targets had constant heading. This assumption can be justified for targets travelling
+along known roads. Second, targets were stationary since the sensor footprint is
+much larger than the distance travelled by the target during the simulated scenario.
+Since MILPs are inherently non-deterministic polynomial time NP-complete, this
+algorithmscalesexponentiallywiththenumberofUAVs.Moreover,inthepresenceof
+moving targets, the whole solution must be recalculated as the states of the targets
+change,makingthisapproachunfeasibleasareal-timesolution.Third,thecentralised
+assignment algorithm can be computed by either a centralised agent (e.g. command
+centre or team leader) or redundantly by each of the UAVs. With either approach,
+up-to-dateinformationoneachUAV’sstateconsistingofposition,headingandvelocity,
+has to be shared across the whole network. Any fault invehicle state measurements
+and vehicle to vehicle communications might cause uncoordinated assignments or
+inconsistent team decision making.
+The main contribution of this research is the investigation of the decentralised
+control framework that enables efficient operations for a large-scale UAS performing
+a cooperative task when a centralised decision maker cannot or does not exist.
+The proposed methodology is designed based on agent level interactions through
+thecombinationofdirectinteractionandindirectinteraction.Directinteractionsarethe
+obviousinteractionswhereagents,ingivencircumstances,sendoutrequestsandother
+agents who received the requests later respond. Indirect interactions are made via
+stigmergy. Stigmergy is the mechanism within which individual behaviour modifies
+theenvironment,whichinturnmodifiesthebehaviourofotherindividuals(Bonabeau
+etal.,1999).Inthis study,stigmergyisusedtocoordinate the behaviouroftheUAVs
+duringthetrackingstageviamutualinformation.Informationtheoryhasbeenwidely
+used in the area of sensor management. Mutambara and Durrant-Whyte (1994)
+proposedadecentraliseddatafusionalgorithmusinginformationtheoreticmeasures.
+Theylater considered sensor management and control essentiallyas maximising the
+information gain of the network as a whole (Durrant-Whyte and Grocholsky, 2003).
+Acombinationofparticlefilteringfornon-parametricdensityestimation,information
+theoreticmeasuresforcomparingpossibleactionsequencesandartificialphysicsfor
+providingapproximatecooperationbetweensensornodeswerepresentedtoaddresses
+theproblemofsensormanagementforalargenetworkofagilesensors(Kreucheretal.,
+2007).Ryanetal.(2007)developsarecedinghorizoncontrolformulationwithmultiple
+step lookahead for a team of sensors to cooperatively search for and track a target,
+whichhasthepotentialtoproducefarbettersolutionsbyaccountingforsensormotion
+constraintsanddelayedpayoff.TheFisherinformationmatrixwasalsoconsideredto
+quantify the information provided by the measurements, which lead to trajectories
+designed for UAV tracking ground targets with vision based sensors (Ponda et al.,
+2009).Informationtheoreticmeasureshavealsobeenappliedinexplorationmissions
+togenerateinformativepathsfor unmannedplatforms(Singhetal.,2009;Yangetal.,
+2013).Forthiswork,wedonotaddressthepathplanningproblemfortrackingUAVs.
+ThetrackingUAVonlypredictsthemutualinformationgainforthenextcontrolstep.
+Ourmainfocusinthisstudyistoevaluatetheefficiencyoftaskallocationoftheoverall Cooperative
+groupresourcesover the multiple targets. control of UAV
+Theremainderofthispaperisstructuredasfollows.Followingtheproblemstatement
+swarm
+inSection2,Section3describestherule-basedcontrolframework.Simulationresultsand
+analysisarepresentedinSection4andasummaryofthestudyisgiveninSection5.
+2. Problemstatement 259
+Theproblemofinterestisadynamicvariantoftheknowncooperativemovingtarget
+engagement mission, described and analysed by Kingston and Schumacher (2005).
+In this scenario, a group of UAVs is operating over a defined area tracking and
+attacking several ground based moving targets. Instead of assuming the targets are
+stationaryrelativetotheUAVsasinpreviousresearch,thetargetmotionisrepresented
+usingastate-spacemodelwithmotionuncertainty.EachUAVisassumedtobeequipped
+with radar-based Ground Moving Target Indicator (GMTI) to measure the locations
+and range rate of the ground targets relative to the UAVs and a sensor to detect the
+presenceofotherUAVswithinapredefineddistance.Thismissionrequiresthatthetarget
+becontinuouslytrackedbytwovehiclesduringtheattackphasewhileanadditionalUAV
+launchesaguidedweapon.Theinformationfromthetrackingvehiclesisfusedtoform
+aprecisetargetlocationfortargetingtheweapon.Sincethecooperativesearchalgorithm
+for distributed, independent swarm UAS has been addressed in previous research
+(Pack and Mullins, 2003; Erignac, 2007), we remove the global search stage from the
+scenarioassumingtheinitialpositionsofthetargetsareavailabletotheUAVs.
+The GMTI sensor footprint in this study is assumed to be a circular sector-shape
+with a minimum and maximum radius.The GMTI sensors areDoppler based which
+meansthatamovinggroundtargetcanonlybedetectedandtrackediftherangerate
+relative to the vehicle is above some minimum detection velocity. Thus the tracking
+UAVshavetostaywithinsomeoffsetanglefromtheheadingofthemovingtarget,to
+maintain this relative velocity. Figure 1 shows the heading of the target and the
+associatedtarget’sregionofdetectability(lightgreyarea).Withinthetargetdetection
+region,theonboardGMTIradarscandetectandtrackthetarget’smotion.Thesensor
+footprint(darkbluearea)isshownpointingfromthesideoftheUAV.AstheUAVflies
+alongthearcofacirclecentredonthetarget,thesensorfootprintcanlockonthetarget
+(cid:2)
+Figure1.
+Schematicdiagramfor
+cooperativetracking
+IJIUS constantly.Tofurthercomplicatetheproblem,thedifferenceinbearinganglesyofthe
+1,3 trackingUAVstothetarget,arerequiredtobegreaterthanacertainvaluetoreducethe
+targetlocationestimationerror.ThetargetkinematicmodelandGMTImeasurement
+model are presentedin thefollowing.
+The primary objective of target tracking is to estimate the states of the target.
+Atargetisusuallytreatedasapointobjectintrackingproblems.Thekinematicmodel
+260 of the target describes the evolution of the target states. The target kinematic model
+considered in this study is a commonly used model called the discrete white noise
+accelerationmodel(RongLiandJilkov,2003).Thecorrespondingstate-spacemodelis
+givenby:
+xðkþ1Þ¼FðkÞxðkÞþGðkÞwðkÞ; ð1Þ
+. .
+wherethestatevectorx¼[x;x;Z;Z].xandZarethedistancesofthetarg
+.
+etinx
+.
+andy
+directions from the origin point. The corresponding velocities are thus x and Z:w(k)
+istheconstantvelocityofthetargetduring thetime periodk,w(k)DTistheincrease
+in the velocity of the target during this period, while w(k)DT2/2 is the average
+accelerationofthetargetduringthisperiod.w(k)ismodelledasawhiteGaussiannoise
+sequence denoted by w(k)BN(0,Q(k)), where:
+" #
+s2 0
+QðkÞ¼ x ð2Þ
+0 s2
+Z
+The standarddeviationofprocess noise s ands is settobe 0.5metrespersecond.
+x Z
+The transition matrix is:
+2 3
+1 DT 0 0
+60 1 0 0 7
+FðkÞ¼6 7 ð3Þ
+40 0 1 DT5
+0 0 0 1
+and the vectorgain multiplying the process noise is given by:
+2 DT2=2 0 3
+6 DT 0 7
+GðkÞ¼6 7 ð4Þ
+4 0 DT2=25
+0 DT
+Tosimplifytheproblem,weassumethatthedynamicmodelofthetargetisknownto
+theUAVs.Inmanypracticalsituations,thedynamicmodelofthetargetbeingtracked
+is not available to the tracker or it may possibly be time-varying, e.g. manoeuvring
+targets. The techniques used to deal with such problems can be found in
+Bar-Shalom et al. (2001).
+In this study, the UAVs are assumed to be equipped with GMTI sensors
+(Bar-Shalom, 2000). The measurement equation is given by:
+zðkÞ¼hðxðkÞ;kÞþvðkÞ ð5Þ
+Themeasurementvectorz(k)comprisespositionsinthexandydirectionsandrange Cooperative
+.
+rater where: control of UAV
+. . . swarm
+rðkÞ¼xðkÞcosaðxðkÞ;x ðkÞÞþZðkÞsinaðxðkÞ;x ðkÞÞ ð6Þ
+v v
+wherea(x(k),x (k))isthebearingangleofthetargetmeasuredbythevehicleattimek.
+v
+Thesensor measurementmatrix is givenby:
+261
+2 3
+1 0 0 0
+hðxðkÞ;kÞ¼4 0 0 1 0 5 ð7Þ
+0 cosaðxðkÞ;x ðkÞÞ 0 sinaðxðkÞ;x ðkÞÞ
+v v
+v(k) in Equation (5) is the Gaussian measurement noise vector denoted by
+v(k)BN(0, R(k)), where:
+2 3
+s2ðkÞ s2 ðkÞ 0
+x xZ
+RðkÞ¼6s2 ðkÞ s2ðkÞ 0 7 ð8Þ
+4 Zx Z 5
+0 0 s2.
+r
+The error statics for sensor measurements are given in terms of the range standard
+deviation s, the range rate standard deviation s. and the bearing angle standard
+r r
+deviations ,whichareknown.Inthisexercise,theyaresettocorrespondto5metres,
+a
+1 metre per second and 0.001 radians. With these and the position variances, the
+covariancecan be calculated as:
+s2ðkÞ¼rðxðkÞ;x ðkÞÞ2s2sinaðxðkÞ;x ðkÞÞ2
+x v a v ð9Þ
+þs2cosaðxðkÞ;x ðkÞÞ2
+r v
+s2ðkÞ¼rðxðkÞ;x ðkÞÞ2s2cosaðxðkÞ;x ðkÞÞ2
+Z v a v ð10Þ
+þs2sinaðxðkÞ;x ðkÞÞ2
+r v
+s2 ðkÞ¼ðs2(cid:2)rðxðkÞ;x ðkÞÞ 2s2ÞsinaðxðkÞ;x ðkÞÞ
+Zx r v a v ð11Þ
+(cid:3)cosaðxðkÞ;x ðkÞÞ
+v
+where range of the target r(x(k), x (k)) measured from each vehicle is evaluated at
+v
+xðkÞ¼x^ðkjk(cid:2)1Þ:
+3. Decentralised cooperativecontrol
+In this section, a rule-based control framework, which effectively generates
+cooperative behaviours of multiple UAVs is presented. A swarm system can be
+definedasadecentralisedsystemmadeofautonomousagentsthataredistributedin
+the environment and follow simple probabilistic stimulus-response behaviours
+(Garnieretal.,2007).Theindividualswithintheswarmsystemarenotabletoassess
+aglobalsituationandcontrolthetaskstobecarriedoutbytheotheragents,i.e.there
+isnosupervisorinaself-organisingswarmsystem.Forexample,eachtimeanagent
+performs an action, the local environment is modified by this action. The new
+IJIUS environmentalconfigurationwilltheninfluencethefutureactionsofotheragents.This
+1,3 processleadstotheemergentpropertiesofthecolonyatthesystemlevel.Inthisrule-
+basedapproach,eachvehiclecanswitchbetweenfourbehaviouralstates;thesebeing
+cruise,standby,attackandtrack.Ineachstate,thebehaviouroftheUAVsisgoverned
+bylocalrules.Theswitchbetweenbehaviouralstatesistriggeredbychangesoflocal
+environment, e.g.target states and request received fromneighbours.
+262
+3.1 Information theoreticcooperative tracking
+Inordertotrackthetargets,theUAVsintrackmodehavetosatisfythesensorgeometry
+constraintsandmaintainseparatedline-of-sightanglestothetarget.Theestimationerror
+inthepositionofthemovingtargetcanbereducedbymultiplesensorswithseparated
+line-of-sight angles to the target, with preferablyorthogonal views (Schumacher, 2005).
+Thisistreatedinpreviousresearchbyrestrictingthedifferenceinbearinganglesofthe
+UAVstothetargettobe445degrees.Differenttothepreviousresearch,theangleseparation
+requirementisnotenforcedbyconstraints.Sincetheperformanceofthetargetestimationis
+dependentuponthepositionsfromwhichmeasurementsaretakenrelativetothetargetand
+theinformationcontentofasetofmeasurementscanbequantifiedandrecursivelycomputed
+byaninformationfilter,ourmethodologyistoletthetrackingUAVsflytrajectoriesthatlocally
+maximisetheinformationgainforthenextmeasurement.Bydoingthis,theangleseparation
+willbeformedautomatically.
+The standard version of the Kalman filter uses the estimation of states x(i) and
+calculates the gain with a recursive computation of the state covariance P(i|j)
+(Crassidis, 2004). The information filter is derived fromthe Kalman filter in terms of
+theinformationstatesvectory^ðijjÞandtheinformationmatrixY(i|j).Theinformation
+state vector and informationmatrixaredefinedas:
+y^ðijjÞ¼P(cid:2)1ðijjÞx^ðijjÞ ð12Þ
+YðijjÞ¼P(cid:2)1ðijjÞ ð13Þ
+Becausethetargetmotionstateandthesensor measurementusedinourstudyhasa
+non-linear relationship (as given in Equation (5)), we utilise an extended information
+filter (Mutambara, 1999). The prediction step ofthe filter is givenby:
+y^ðkjk(cid:2)1Þ¼ð1(cid:2)XðkÞGTðkÞÞF(cid:2)TðkÞy^ðk(cid:2)1jk(cid:2)1Þ ð14Þ
+and
+Yðkjk(cid:2)1Þ¼MðkÞ(cid:2)XðkÞRðkÞXTðkÞ ð15Þ
+where
+MðkÞ¼F(cid:2)TðkÞYðk(cid:2)1jk(cid:2)1ÞF(cid:2)1ðkÞ ð16Þ
+XðkÞ¼MðkÞGðkÞR(cid:2)1ðkÞ ð17Þ
+and
+RðkÞ¼GTðkÞMðkÞGðkÞþQ(cid:2)1ðkÞ ð18Þ
+while the estimationstepcan be written as: Cooperative
+control of UAV
+y^ðkjkÞ¼ y^ðkjk(cid:2)1ÞþiðkÞ; ð19Þ
+swarm
+YðkjkÞ¼Yðkjk(cid:2)1ÞþIðkÞ ð20Þ
+The information state contribution i(k) and its associated information matrix I(k) are
+263
+given, respectively,as:
+iðkÞ¼rh ðkÞ T ðkÞR(cid:2)1ðkÞðzðkÞ(cid:2)hðx^ðkjk(cid:2)1Þ;kÞ
+x
+ð21Þ
+þrh ðkÞx^ðkjk(cid:2)1ÞÞ
+x
+and
+IðkÞ¼rh ðkÞTðkÞR(cid:2)1ðkÞrh ðkÞ ð22Þ
+x x
+where the Jacobian rf (k) is evaluated at xðk(cid:2)1Þ¼x^ðk(cid:2)1jk(cid:2)1Þand rh (k) is
+x x
+evaluatedatxðkÞ¼x^ðkjk(cid:2)1Þ:ComparedwithaKalmanfilter,theestimationstepof
+theinformationfiltersimplifieswhile thecomplexityinthe predictionstepincreases.
+Theinitialconditionfortheinformationfilterissetasy^ð0j0Þ¼0regardlessofx^ð0j0Þ
+(Bar-Shalom etal.,2001).
+Informationfiltersplayanimportantroleindecentraliseddatafusionproblemsthat
+involve multiple information sources. As for a decentralised system, data fusion and
+vehicle control occur locally at each individual agent with local observation and the
+informationcommunicatedfromneighbouringagents.Intheconventionalapproaches
+to state estimation, it is difficult to capture the statistical relationships that exist
+between estimates produced by combinations of observations (Durrant-Whyte and
+Grocholsky, 2003). The information filter formulation has an additive structure that
+can be exploited bydistributed decision-making algorithms.
+ForNsensorinformationsources,the posteriorinformationstate andinformation
+matrix areobtained from:
+N
+X
+y^ðkjkÞ¼ y^ðkjk(cid:2)1Þþ iðkÞ ð23Þ
+i
+i¼1
+N
+X
+YðkjkÞ¼Yðkjk(cid:2)1Þþ IðkÞ ð24Þ
+i
+i¼1
+wherei (k)istheinformationmatrixandI (k)representstheinformationstatecontributions
+i i
+ofthesensorsi¼1,y,N.Thisisassumingthatthesensorsarefullyconnectedwithno
+communicationfailuresordelays.Theposteriortargetstateestimationisobtainedfrom:
+x^ðkjkÞ¼Y(cid:2)1ðkjkÞy^ðkjkÞ ð25Þ
+The entropic information ofthe estimated target jstates isgiven by:
+1
+iðkÞ¼ log½ð2peÞ(cid:2)njYi;jðkjkÞj(cid:4) ð26Þ
+2
+Thelogistothebase2andentropyisexpressedinbits(CoverandThomas,2006).The
+mutualinformation gain Ii,j (k) for vehicle i tracking targetj is calculated from:
+Track
+" #
+1 jYi;jðkjk(cid:2)1ÞþIi;jðkÞj
+Ii;j ðkÞ¼ log ð27Þ
+Track 2 jYi;jðkjk(cid:2)1Þj
+FromEquation(22),itcanbefoundthattheinformationmatrixIi,j(k)resultsdirectly
+from the geometric position of a UAV relative to the target. Thus, the mutual
+informationwillgiveanapriorimeasureoftheinformationtobegainedfrompotential
+sensing actions.
+Totestandverifythismethodology,wesetupasimulationwithtwoUAVstracking
+onetargetfromdifferentline-of-sightangleseparations.Thesimulationresultsofthe
+trackestimationerroragainsttheseparationangleusingthesensormodelpresentedin
+theprevioussubsectionareasfollows.Figure2ashowsthattheminimumestimation
+error was achievedwith a separation angle between the two UAVs of approximately
+90 degree line-of-sight. Figure 2b shows the entropic information plotted against
+separation angle. The figure suggests that the information measure on the target is
+directlyrelatedtotheestimationerror.Itfollowsthatthemoreinformationwehaveon
+thetarget,themoreaccuratetheestimationofbothitspositionandvelocity,provided
+that the sensors are appropriately displaced. This result verified that navigating
+towards the location from where the observation is more informative (i.e. mutual
+information gain calculated from Equation (27) can lead to more accurate estimation
+about the target’sstatesand also maintain the desiredangle separationrequirement.
+3.2 Four basic behaviours
+A. Cruise. The UAV is in cruise mode if it is not engaged with any target. This
+behaviourhasthreeguidancerulesthatnavigatetheUAVtowardsthenearesttarget,
+dependingon the request itreceived:
+. Ifthereisnorequestreceived,asshowninFigure3a,theUAVswillflytoward
+the nearest target and switch to standby mode once it reaches the standoff
+distance.
+. IftheUAVreceivesarequestfortrackingsupportfromthestandbyvehicle,as
+shown in Figure 3b, it will fly towards the tracking region of the target and
+switch to track mode once it arrives. If the UAVs are already in the tracking
+regionwhenitreceivestherequest,theywillswitchtotrackmodeimmediately.
+5 1.8 1.6
+4 1.4 1.2 3 1
+2 0.8 0.6 1 0.4
+0.2
+0 0
+0 60 120 180 240 300 360
+)sertem
+ni(
+rorre noitisoP
+)s/m
+ni( rorre
+yticoleV
+–8.6
+–8.7 –8.8
+–8.9 –9
+–9.1 –9.2
+–9.3
+–9.4
+–9.5
+Seperation angle (in degrees) 0 60 120 180 240 300 360
+Position RMS estimation error
+Velocity RMS estimation error
+noitamrofnI
+ciportnE
+IJIUS
+1,3
+264
+Figure2. (a)Targetpositionroot
+meansquare(RMS) estimationerrorand
+targetvelocity
+RMSestimationerror;
+(b)targetentropic
+information Seperation angle (in degrees)
+. IftheUAVsreceiverequestfortrackingsupport,atthesametimeitalsoreceives Cooperative
+thelocaltrackdatafromanothertrackingvehicle.AsshowninFigure3c,itwill control of UAV
+startrunningthetrackdatathroughthedatafusionprocessandflytowardthe
+swarm
+locationfromwheretheobservationcanbemostinformative.Onceitarrives,it
+switches totrackmode.
+B. Standby.Inthestandbymode,theUAVscirclearoundthetargetwithapredefined
+265
+standoff distance. The UAVs receive local track data from all the tracking UAVs and
+use decentralised the data fusion algorithm to process the track (Figure 4). Once the
+target track is defined accurately enough for the guided weapon, the standby UAVs
+switch to attack state. This accuracy is measured by the entropic information on
+the target.
+C. Attack. The attack mode is simply modelled as the UAVs heading towards the
+targetandlaunchingtheweaponfromapredefineddistancefromthetarget(Figure4).
+The UAVs tracking the target must track the target for the duration of the weapon
+flight.Oncethetargetisdestroyed,alltheUAVsengagedtothistargetswitchbackto
+cruise state.
+D. Track.When aUAV is inthe trackmode, itsmotionis governed by two rules:
+. ThefirstrulethetrackingUAVsfollowistoplacethetargetwithinthesensor
+footprint while remaining within the detectable line-of-sight angle to the
+target heading.
+. Thesecondruleistoincreasetheentropicinformationonthetarget.Thecontrol
+andestimationprocessis conducted indiscretetime.Thetracking UAVsflyat
+constantvelocitywiththeirheadingasthedecisionvariable.Theywillrequest
+localtrackinformation,i.e.informationstatesy^ðkjkÞandtheinformationmatrix
+Figure3.
+(a)Guidancelawforcruise
+mode;(b)guidancelawfor
+cruisemode;(c)guidance
+lawforcruisemode
+Receive local track data
+from tracking UAVs Figure4.
+(a)Standbymode;
+(b)attackmode
+IJIUS YðkjkÞ from another tracker and compute the desired heading command that
+1,3 maximisethemutualinformationgainforthenextobservationstep.Thisprocess
+willworkrecursivelyuntilthetrackisaccurate enoughtotrigger theattack.
+Intermsofcommunication,thetrackinformationisonlysharedamongthetwotracking
+UAVsandtheattackingUAV.Figure5showsaschematicblockdiagramofthesensor
+and communication network for engaging a target. As shown in the diagram, two
+266
+tracking UAVs make observations on the targets and maintain local tracks. The local
+tracks are shared between two tracking UAVs and used for calculating mutual
+information.Theinformationstatesandinformationmatricesaresenttotheattacking
+UAVstofuseaglobaltrack.Algorithm1summarisesthebehavioursthatarefollowed
+byeachUAVandtheconditionsunderwhichtheyswitchmodes(Figure6).
+4. Simulationand analysis
+4.1 Lyapunov potential field vs information measures
+Inthiscooperativemovingtargetengagementscenario,theabilitytogenerateaccurate
+tracks on the targets is critical to mission performance. The guidance rules have to
+enable the tracking UAVs to fly trajectories that increase the amount of information
+provided by the measurements and improve target states estimation, resulting in
+propertargettrackingandanaccuratetargetlocationestimate,withoutviolatingthe
+dynamicsconstraintsandsensor restrictions.Inthisstudy,wecomparetheproposed
+cooperativetracking methodwithdecentralisedmethod basedon potentialfield. The
+potential field method has been investigated to generate a guidance vector field that
+providesthedesiredvelocityoftheunmannedsystems(RimonandKoditschek,1992;
+Dale,2003;Nelsonetal.,2006).Thespecificmethodweadoptedinthiscomparisonis
+fromFrewetal.(2008)work.TheirmethodisbasedonaLyapunovguidancevectorfield
+that produces stable convergence to a loiter circle of predefined radius. Cooperative
+Tracking UAV1
+Communication
+between Tracking and ∧
+y (k | k),Y (k | k)
+Attacking UAVs
+i (k),I (k) Σ
+2 2
+Local track
+Attacking UAV HT(k)R–1(k)
+∧
+y (k | k–1), k – 1 →k
+Y (k | k–1) Prediction
+y ∧ (k | k),Y (k | k) Σ Z 2 (k)
+Global Track
+Local track
+k – 1 →k y ∧ (k | k–1), Tracking UAV2
+Prediction Y (k | k–1)
+∧
+y (k | k),Y (k | k)
+i (k),I (k) Σ
+2 2 Local track
+HT(k)R–1(k)
+∧
+Figure5. y (k | k–1), k – 1 →k
+Schematicblock Y (k | k–1)
+diagramofdatafusion Z 2 (k)
+Algorithm 1
+1: switch behaviour
+2: caseCruise (default behaviour at the beginning of the mission)
+3: if (no request received)
+4: Fly toward the nearest target; Change to standby once it reaches the standoff distance.
+5: elseif (tracking requestreceived)
+6: Fly toward tracking region of the target; Change to track once it arrives.
+∧
+7: elseif (tracking request and receive y (k | k),Y(k | k)from other tracking UAV received)
+8: Compute the desired heading command that maximise the mutual information gain for
+the next observation step; Change to track once it arrives.
+9: end if
+10: case Standby
+11: Circle around the target; Send request for tracking support; Process the target track;
+Change to attack when the level of accuracy is achieved.
+12: case Attack
+13: Release weapon; Change back to cruise.
+14: case Track
+15: if (target tracked by single UAV)
+16: Track target by maintain sensor coverage.
+17: elseif (target tracked by cooperative UAVs)
+18: Perform cooperative tracking (step 8); Change back to cruise once the target is Figure6.
+destroyed. Pseudocodeforrule-based
+19: end if controlarchitecture
+20: end while
+trackingbymultipleunmannedaircraftisachievedthroughadditionalphasingcontrol
+lawwhichadjuststhespeedofthevehiclestomaintainadesiredrelativephaseonthe
+loitercircle.Thephaseseparationissettobe90degreestominimisetheachievableerror
+variance(Guetal.,2006).
+Figure 7 shows the flight trajectories generated by these two methods while
+trackingagroundmovingtargetfromstand-offdistance.ItcanbeseenfromFigure7a,
+by following the guidancevector field, that theUAVsare attractedtothe loitercircle
+about the target vehicle, and maintain the desired phase angle separation. Such
+coordinationisachievedbyconstantlysharingthepositionbetweenthetwoUAVs.In
+contrast,theUAVsusingtheproposedmethodheadtowardthetrackingregioninthe
+early stage without any knowledge of other UAVs. As the UAV 2 is initially located
+nearer tothe target, itstarts tracking thetargetearlier than UAV1.Figure7bshows
+that UAV 1 receives track data from UAV 2 and plans its next move to maximise
+informationwhichcausesUAV 1toloitercounterclockwise about the target.
+x105
+2.5
+2
+1.5
+0.5
+1
+0
+–0.5
+–1
+–1.5
+–2
+–2.5
+noitisoP
+Y
+x105
+2.5
+UAV 1
+UAV 2 2
+Target
+1.5
+1
+0.5
+0
+–0.5
+–1
+–1.5
+–2
+–2.5
+–3 –2 –1 0 1 2 3
+X Position x 105
+noitisoP
+Y
+Cooperative
+control of UAV
+swarm
+267
+UAV 1
+UAV 2
+Target
+Figure7.
+(a)Cooperativetracking
+viaLyapunovpotential
+field;(b)cooperative
+trackingviainformation
+–3 –2 –1 0 1 2 3 measures
+X Position x 105
+IJIUS In order to investigate the performance of these two techniques, the Monte Carlo
+1,3 methodusesatotalsamplesizeof100.ThetwoUAVsarerandomlygeneratedbetween
+40kilometresand55kilometresfromthetarget.Werecordthetimewhentheentropic
+informationonthetargetreaches(cid:2)8.8whichindicatestheaccuracyoftheestimation.
+ThesimulationresultsshowthattheUAVsspendanaverageof748secondstoreach
+thethresholdusingpotentialfieldmethodwhiletheyspendanaverageof348seconds
+268 using information measures. This indicates the effectiveness of the information
+theoretic framework applied to cooperative tracking. Evenwithout coupled objective
+functions and dynamics, i.e. no planning information is shared between UAVs; the
+UAVs can still demonstrate the capability to perform cooperative tracking in a time
+criticalscenario.Incontrast,theLyapunovpotentialfieldmethodismoresuitablefor
+persistenttrackingasitcanproduceanasymptoticstabilitytoadesiredloiterpattern.
+4.2 Centralised controlvs swarm control
+In this section, the simulation results of the complete cooperative moving target
+engagement scenario are presented. First an example scenario is used to explain the
+proposedrule-basedcontrolframework.ThisscenarioincludessevenUAVsandthree
+groundtargets.Themissionareaisasquarewhoseareais100squarekilometres.The
+UAVs fly at a constant speed, governed by flight dynamics, of 110 metres per
+second.TheirbehavioursaregovernedbytherulesetspresentedinSection3.2.The
+targets are initially randomly distributed over the mission area and their motions
+aredefinedbyEquation(1).Figure8a-cdisplaystagesofthesimulatedscenarioat
+three points in time.
+At 188 seconds, UAVs 1 (red) and 4 (yellow) were designated to assist in tracking
+target 1 in cooperation with UAV 7 (orange). The coloured area displays the sensor
+footprint ofthe tracking UAVs. The UAVs’sensor footprints havethe same colour as
+the UAVs themselves. It can be noted that UAV 1 changed its heading once UAV 4
+startedtrackingasaresultofthetrackingrule,i.e.,headingtowardsthelocationwhere
+the measurement could yield more information. This action caused UAVs 1 and 4 to
+maintainanappropriateline-of-sightseparationanglewhiletrackingthetarget.Onthe
+rightside,UAV6(cyan)weretrackingtarget3whileUAV5(magenta)wasinstandby
+mode waiting for tracking support fromthe secondvehicle. As can be seen from the
+flightpath,UAV2(green)washeadingtowardstarget2initially,andthenchangedits
+coursetohelptrackingtarget3afteritreceivedatrackingrequestfromstandbyUAV5.
+After213seconds,UAV1startedtrackingtarget3aftertarget1wasdestroyedand
+the track information became accurate enough for UAV 5 to attack target 3. UAV 2
+switchedbacktotarget2becausetrackingsupportwasnolongerneededfortarget3.
+Figure8.
+( a ( a a b t t ) ) t t S s i i m m i i m m e e u u 1 2 l l a a 8 1 t t 8 3 e e d d s s e e s s c c c c o o e e n n n n d d a a s s r r ; ; i i o o 4 2 1 1 5 3 6 4 2 7 1 5 3 6 4 2 7 1 2 5 6
+2 2
+(c)simulatedscenario 3 3 3
+attime279seconds
+After279seconds,UAVs2and3weretrackingtarget2cooperativelywhileUAV7was
+attacking. The information filter results for target 1 are presented in Figure 9.
+Itshowsthepositionestimationerrorandstandarddeviationboundsforx-andy-axis.
+As can be seen from the lower plot, the y-axis estimation results deteriorated as the
+line-of-sightofUAV1totarget1approachedthehorizontal.Thisisduetothefactthat
+cross-range velocity is difficult to detect using a Doppler-based radar. This is
+unavoidablewhenusingonevehicletotrackthetargetbecauseofthecircularmotion
+of the vehicle around the target. Both axis estimation results improved quickly after
+160measurements,thatiswhenUAV4joinedUAV1intrackingthesametarget.This
+is especially the case for the y-axis estimation. This result shows that the proposed
+method can coordinate the trajectories of the tracking UAVs which increases the
+accuracyof the estimation.
+The Monte Carlo method with a sample size of 100 is used to evaluate the
+proposed control framework compared with the centralised control strategy
+proposed in (Kingston and Schumacher, 2005) in two scenarios. Each scenario
+includessevencaseswiththenumberofUAVsprogressivelyincreasingfrom6to12.
+Inscenario1,threetargetsandthewholeteamofUAVswererandomlydistributed
+over the mission area at the beginning of the simulation. In scenario 2, the UAV
+swarmentersthemissionareafromtheleftsideinatightformation.Thenumberof
+targetsisincreasedtofour.Attheendofeachsimulation,thetimeforeliminatingall
+targets was recorded. The computational intensity is one of the main issues with
+the centralised algorithm. It is found out that the problems of 12 vehicles (include
+bothUAVsandtargets)aresolvableino30secondsbyusingtheCPLEXsolverona
+personal computer. As the size of the problems increased to 20 vehicles, the time
+spent on finding solutions increased to 90 seconds. We estimate that it will take
+40
+30
+20
+10
+0
+–10
+–20
+–30
+)m(
+etamitsE
+noitisoP
+fo
+rorrE
+1 11 12 13 14 15 16 17 18 19 101 111 121 131 141 151 161 171 181
+x Position error
+x Position SD
+Number of Measurements
+15
+10
+5
+0
+–5
+–10
+–15
+–20
+)m(
+etamitsE
+noitisoP
+fo
+rorrE
+1 11 12 13 14 15 16 17 18 19 101 111 121 131 141 151 161 171 181
+Cooperative
+control of UAV
+swarm
+269
+y Position error
+y Position SD
+Figure9.
+Positionestimationerror
+andstandarddeviation
+(SD)oftarget1
+Number of Measurements
+20minutestooptimisetheproblemsof30vehicles.Thusamaximum12UAVsand
+four targets are considered in our study for the comparison of centralised and
+decentralised algorithms.
+The average of the final task completion time for each simulated scenario are
+summarisedinFigure10.Theerrorbarsshowthe95percentconfidenceintervalfor
+themeanvaluebasedonthesampledata.ItcanbeseenfromFigure10athatthecurve
+representingtherule-basedUAVswarmdescendsfasterthanthecentralisedcontrolled
+swarm,i.e.the advantageofthecentralisedcontrollerbecomeslesssignificantasthe
+numberofUAVsincrease.Forasmallsizegroupofagents,theswarmislessefficient
+as centralised controller, especially for mission scenarios with strong timing and
+couplingconstraints.Suchresultsareexpectedasthecentralisedcontrolleroptimising
+thecommonobjectivesharedbythewholeteamandbeabletoresolvetheconflictsif
+thetasksarecoupled,whilethedecentralisedcontrollercouldonlyoperateunderlocal
+and environment-driven rules due to the absence of global coordination information.
+AsthenumberofUAVsincrease,theUAVsonlyneedtoengagethetargetsthatare
+near tothem.ThismeansthatthetasksthattheUAVsaretoperformbecomeless
+coupled than in the situation where one UAV has to perform multiple tasks on
+multiple targets.
+Thesimulationresultsofscenario2aregiveninFigure10b.Ascanbeseen,thegap
+between these two curves does not decrease as the number of UAVs increase. This
+ismainlybecauseinscenario2thewholeteamofUAVsstartsatonesideofthemission
+area in close formation. Such a setup causes the UAVs to lose the advantages of
+spreading over the mission area. Therefore, the task assignment problem becomes
+more tightly coupled than in the scenario 1. This makes it impossible for the
+decentralised controller to achieve the performance of the centralised controller if
+theproblemcanbesolvedinreal-time.Suchadrawbackoftheswarmsystemleadsto
+the investigation of an integrating predictive model applied to individual agents to
+enhance themissionperformance.
+4.3 Predictive swarm
+In this swarm system, individual agents neither control nor are aware of tasks to be
+carried out by other agents. Even though this design enables agents to perform
+separate subtasks cooperatively, the achievable performance is low. This is mainly
+because in the early state of the mission, the UAVs fly towards the nearest target
+without knowing that there is a possibility that other UAVs may arrive earlier and
+destroythetargetbeforetheyarrive.ThiscausesanexcessivenumberoftheUAVsto
+1,300
+1,200 1,100
+1,000
+900
+800
+700
+600
+500
+400
+6 7 8 9 10 11 12
+lla rof emit
+noitelpmoc
+ksat
+laniF
+)sdnoces
+ni(
+stegrat
+3,300
+3,200 Swarm 3,100 Centralised 3,000
+2,900
+2,800
+2,700 2,600
+2,500
+2,400
+2,300 2,200
+2,100
+6 7 8 9 10 11 12
+Number of UAVs
+lla rof emit
+noitelpmoc
+ksat
+laniF
+)sdnoces
+ni(
+stegrat
+IJIUS
+1,3
+270
+Swarm Centralised
+Figure10.
+(a)MonteCarloresultsof scenario1;(b)MonteCarlo
+resultsofscenario2
+Number of UAVs
+waste time on a target which can be better engaged by other members in the team. Cooperative
+To address this issue, a prediction model which allows the UAVs to predict the control of UAV
+intentions of their neighbours is added to the decentralised controller. This
+swarm
+predictionmodelusesthemixedintegerlinearprogrammingformulation(Kingston
+and Schumacher, 2005) and works as a preliminary assignment algorithm. When
+a UAV is in cruise mode, it senses its neighbours’ states, such as position, heading
+and velocity, and uses them as the input to compute the assignment. The prediction 271
+modelwillrunatthebeginningofthemissiontoallocateaninitialassignment.After
+that,itwillbetriggeredbythreeevents,namely,theUAVschangebacktocruisemode
+from any of the other three modes, they detect new neighbours or the neighbours’
+movement deviates from the previous prediction. By setting up these rules, the load
+oncomputationisexpected tobereducedand tomake theUAVsbetterabletoadapt
+to uncertainty. Even though this prediction model uses the same formulation as
+the centralised approach in previous research, they operate differently. First, this
+prediction model is only concerned with one UAVand its near neighbours, while
+the centralised approach is concerned with the whole group. This makes the
+predictivedecentralisedcontrollerscaleaswellasdecentralisedcontroller.Second,
+theassignmentresultingfromthepredictionmodelisjustatemporaryassignment.
+Since the UAVs are in the cruise mode after receiving assignments from the
+prediction model, they will still respond to any request to turn into trackers.
+Although the cooperation of the swarm still relies on the interactions that take
+placeamongthegroup,thepredictionmodelwillgivetheagentsanincreasedlevel
+ofsituationawareness.Thustheagentswouldacceptanassignmentthatdoesnot
+maximise their individual utility if they can maximise the overall team utility.
+For instance, the agents will choose the targets which may not be the nearest but
+by engaging such targets would potentially reduce the overall time of finishing
+the mission. The following is a simulation model used to demonstrate the
+increased performance by using predictive swarm comparing with simple swarm
+presented early.
+AsshowninFigure11aandb,theUAVswiththesimpleswarmcontrollerwereall
+flying towards target 1because the rule settells them toengage the nearesttargetif
+there is no request received. In contrast, the UAVs with predictive swarm controller
+split into two group of three. One group headed towards target 1 and anothergroup
+chose target2.
+As can be seen from Figure 11c, until target 1 was destroyed, the UAVs began
+to move towards target 2. On the other hand, as shown in Figure 11d, three
+UAVs chose the target 2 at the beginning of the mission was already halfway
+to target 2.
+Aftertarget1wasdestroyed,theUAVswiththesimpleswarmcontrollerallchose
+target 2. As for the UAVs with the predictive swarm controller, three UAVs that
+previouslyengagedtarget1decided togototarget3after theyattackedtarget1.As
+can be seen from Figure 11e and f, it took one and half minutes longer for the UAVs
+with the simpleswarmcontroller to reachtarget 2.
+Finally, target 3 was destroyed. The UAVs with the predictive swarm controller
+finishedthemissionalmostfiveminutesearlier.Thesimulationstudyofscenario2is
+repeatedincludingthepredictivedecentralisedcontrollerthistime.Ascanbeseenin
+Figure12,thepredictivedecentralisedcontrollerprovidedbetterperformancethanthe
+simple responsiveswarm inall cases.
+IJIUS
+1,3
+3 3
+1 1
+13 5 1 5
+272 246 4
+3
+2 6
+2 2
+3 3
+4 1 5 11
+3
+3246 4
+3
+6
+2
+2 2
+3 3
+5 1
+4
+1
+5 6 6
+2
+3 2
+2 32
+Figure11.
+(a)Simpleresponsive
+swarmat90seconds;
+(b)predictiveswarmat 1
+90seconds;(c)simple
+6
+r s e e s c p o o n n d s s i ; v ( e d) sw pr a e r d m ict a iv t e 250 2 5 13 5 6 43
+swarmat250seconds; 3 4 2 3
+(e)simpleresponsive
+swarmat590seconds;
+(f)predictiveswarmat500
+seconds;(g)simple
+responsiveswarmat1,115
+seconds;(h)predictive
+swarmat850seconds
+3,300
+3,200
+3,100
+3,000
+2,900
+2,800
+2,700
+2,600
+2,500
+2,400
+2,300
+2,200
+2,100
+6 7 8 9 10 11 12
+5. Conclusion
+This paper investigated the use of decentralised controllers for cooperative moving
+targetengagementmissions.Differenttoacentralisedtaskassignmentalgorithm,the
+cooperationoftheagentsisentirelyimplicit.ThebehaviouroftheUAVswasgoverned
+by rule sets which ultimatelylead to a highly cooperative performance of the group
+withouttheneedforacentralisedcontrolauthority.Theinformationtheoreticmeasures
+are adopted to estimate the value of possible future actions and make the UAVs fly
+trajectories that locally maximise the information content for the next measurement.
+Two types of decentralised controllers were proposed, namely the responsive swarm
+controllerand the predictive swarmcontroller.
+The simulation study evaluates the performance of the decentralised controller
+against the centralised controllerquantitatively.
+The results show that the performance of the decentralised controller depends on
+thecomplexityofthecoupledtaskconstraints.IftheincreasednumberofUAVscould
+cause the tasks to be less coupled, the decentralised controller would become
+competitivewiththecentralisedcontrollerinlargesizeproblems.Ifthecomplexityof
+the coupled task constraints does not reduce as the size of the swarm increases, the
+predictive model can be integrated into the decentralised controller to let the agents
+estimate the intentions of their neighbours and choose activities which enhance the
+overall team utility accordingly. The improvement in the performance by using
+predictiveswarmcontrollerwasshowninthesimulationresults.However,thebenefits
+ofredundancyandrobustnessofferedbyaswarmsystem,hasnotbeendemonstrated
+in current design. In the future work, the adaptive ability of these two types of
+controllers due to uncertainties such as communication constraints, manoeuvring
+targets and threatswillbe investigated.
+References
+Altshuler,Y.,Yanovsky,V.,Wagner,I.andBruckstein,A.(2006),“Swarmintelligence–searchers,
+cleaners and hunters”, in Nedjah, N. and Mourelle, L.D.M. (Eds), Swarm Intelligent
+Systems,Springer,Berlin,Heidelberg,pp.93-132.
+Bar-Shalom, Y. (2000), Multitarget/Multisensor Tracking: Applications and Advances, Artech
+PrintonDemand,Norwood,MA.
+Bar-Shalom,Y.,Li,X.R.andKirubarajan,T.(2001),EstimationwithApplicationstoTrackingand
+Navigation,Wiley-Interscience,NewYork,NY.
+lla
+rof
+emit
+noitelpmoc
+ksat
+laniF
+)sdnoces
+ni(
+stegrat
+Cooperative
+Swarm
+control of UAV
+Predictive swarm
+Centralised swarm
+273
+Figure12.
+Repeatedscenario2with
+predictivedecentralized
+controllerincluded
+Number of UAVs
+IJIUS Bonabeau, E., Dorigo, M. and Theraulaz, G (1999), Swarm Intelligence – From Natural to
+1,3 ArtificialSystems,OxfordUniversityPress,BocaRaton,FL.
+Bourgault, F., Furukawa, T. and Durrant-Whyte, H.F. (2003), “Coordinated decentralized
+search for a lost target in a Bayesian world”, Intelligent Robots and Systems, IROS,
+2003. Proceedings, 2003 IEEE/RSJ International Conference, Vol. 1, 27-31 October,
+pp.48-53.
+274 Ceccarelli,N.,Enright,J.J.,Frazzoli,E.,Rasmussen,S.J.andSchumacher,C.J.(2007),“MicroUAV
+pathplanningforreconnaissanceinwind”,AmericanControlConference,ACC,9-13July,
+pp.5310-5315.
+Cover,T.M.andThomas,J.A.(2006),ElementsofInformationTheory,JohnWiley&SonsInc,
+Hoboken, NJ, available at: http://search.ebscohost.com/login.aspx?direct¼true&db¼
+nlebk&AN¼158159&site¼ehost-live.
+Crassidis, J. (2004), “Sequential state estimation”, Optimal Estimation of Dynamic Systems,
+ChapmanandHall/CRC,London.
+Dale, L. (2003), “Lyapunov vector fields for UAV flock coordination”, 2nd AIAA “Unmanned
+Unlimited” Conference and Workshop & Exhibit, AmericanInstitute of Aeronautics and
+Astronautics,SanDiego,CA,16September.
+De Vries, E. and Subbarao, K. (2011), “Cooperative control of swarms of unmanned aerial
+vehicles”,49thAIAAAerospaceSciencesMeetingincludingtheNewHorizonsForumand
+AerospaceExposition,AmericanInstituteofAeronauticsandAstronautics,Orlando,FL,
+4-7January.
+Durrant-Whyte, H. and Grocholsky, B. (2003), “Management and control in decentralised
+networks”,InformationFusion.ProceedingsoftheSixthInternationalConferenceof,2003,
+pp.560-566.
+Erignac,C.A.(2007),“Anexhaustiveswarmingsearchstrategybasedondistributedpheromone
+maps”, AIAA Infotech@Aerospace 2007 Conference and Exhibit, American Institute of
+AeronauticsandAstronautics,RohnertPark,CA,7-10May.
+Frelinger,D.R.,Joel,K.andWilliam,S.(1998),ProliferatedAutonomousWeapons:AnExampleof
+CooperativeBehavior,RANDCorporation,SantaMonica,CA.
+Frew, E.W., Lawrence, D.A. and Morris, S. (2008), “Coordinated standoff tracking of moving
+targets using Lyapunov guidance vector fields”, Journal of Guidance, Control, and
+Dynamics,Vol.31No.2,pp.209-306.
+Furukawa, T., Bourgault, F., Lavis, B. and Durrant-Whyte, H.F. (2006), “Recursive Bayesian
+search-and-tracking using coordinated uavs for lost targets”, Robotics and Automation,
+ICRA.Proceedings,2006IEEEInternationalConferenceon,15-19May,pp.2521-2526.
+Garnier, S., Gautrais, J. and Theraulaz, G. (2007), “The biological principles of swarm
+intelligence”,SwarmIntelligence,Vol.1No.1,pp.3-31.
+Gaudiano,P.,Shargel,B.,Bonabeau,E.andClough,B.T.(2003),“ControlofUAVswarms:what
+the bugs can teach us”, 2nd AIAA “Unmanned Unlimited” Systems, Technologies, and
+Operations, American Institute of Aeronautics and Astronautics, San Diego, CA, 15-18
+September.
+Gu,G.,Chandler,P.R.,Schumacher,C.J.,Sparks,A.andPachter,M.(2006),“Optimalcooperative
+sensingusingateamofUAVs”,IEEETransactionsonAerospaceandElectronicSystems,,
+Vol.42No.4,pp.1446-1458.
+Kingston, D.B. and Schumacher, C.J. (2005), “Time-dependent cooperative assignment”.
+Proceedingsofthe2005AmericanControlConference,Vol.6,8-10June,pp.4084-4089.
+Kreucher, C.M., Hero, A.O., Kastella, K.D. and Morelande, M.R. (2007), “An information-based
+approach to sensor management in large dynamic networks”, Proceedings of the IEEE,
+Vol.95,pp.978-999.
+Mutambara, A.G.O. (1999), “Information based estimation for both linear and nonlinear Cooperative
+systems”,Proceedingsofthe1999AmericanControlConference,Vol.2,2-4June,pp.1329- control of UAV
+1333.
+swarm
+Mutambara, A.G.O. and Durrant-Whyte, H. (1994), “Distributed decentralized robot control”,
+1994AmericanControlConference,Vol.2,29June-1July,pp.2266-2267.
+Nelson,D.R.,Barber,D.B.,Mclain,T.W.andBeard,R.W.(2006),“Vectorfieldpathfollowingfor
+smallunmannedairvehicles”,2006AmericanControlConference,14-16June,7pp. 275
+Nigam,N.and Kroo,I.(2008),“Persistentsurveillanceusingmultiple unmanned airvehicles”,
+2008AerospaceConference,IEEE,1-8March,pp.1-14.
+Pack,D.J.and Mullins, B.E. (2003),“Towardfinding anuniversalsearch algorithm forswarm
+robots”, Intelligent Robots and Systems (IROS 2003). Proceedings, 2003 IEEE/RSJ
+InternationalConference,Vol.2,27-31October,pp.1945-1950.
+Ponda, S.S., Kolacinski, R.M. and Frazzoli, E. (2009), “Trajectory optimization for target
+localization using small unmanned aerial vehicles”, AIAA Guidance, Navigation, and
+ControlConference,10-13August,Chicago,IL.
+Price,I.C.(2006),EvolvingSelf-OrganizedBehaviorforHomogeneousandHeterogeneousUAVor
+UCAVSwarms,AirForceInstituteofTechnology,WrightPtrsnAFB,OH.
+Rimon, E. and Koditschek, D.E. (1992), “Exact robot navigation using artificial potential
+functions”,IEEETransactionsonRoboticsandAutomation,Vol.8No.5,pp.501-518.
+Rong Li, X. and Jilkov, V.P. (2003), “Survey of maneuvering target tracking. Part I. Dynamic
+models”, IEEE Transactions on Aerospace and Electronic Systems, Vol. 39 No. 4,
+pp.1333-1364.
+Ryan, A.D., Durrant-Whyte, H. and Hedrick, J.K. (2007), “Information-theoretic sensor motion
+control for distributed estimation”, ASME 2007 International Mechanical Engineering
+CongressandExposition,Seattle,WA,11-15September.
+Scerri,P.,Glinton,R.,Owens,S.,Scerri,D.andSycara,K.(2007),“GeolocationofRFemittersby
+manyUAVs”,AIAAInfotech@Aerospace,7-10May,RohnertPark,CA.
+Schumacher,C.(2005),“GroundmovingtargetengagementbycooperativeUAVs”.Proceedings
+ofthe2005,AmericanControlConference,Vol.7,8-10June,pp.4502-4505.
+Shima,T.andSchumachery,C.(2005),“AssigningcooperatingUAVstosimultaneoustaskson
+consecutivetargets using genetic algorithms”, AIAAGuidance, Navigation, and Control
+ConferenceandExhibit,SanFrancisco,CA,15-18August.
+Singh,A.,Krause,A.,Guestrin,C.andKaiser,W.J.(2009),“Efficientinformativesensingusing
+multiplerobots”,J.Artif.Int.Res,Vol.34No.1,pp.707-755.
+Yang,K.,KeatGan,S.andSukkarieh,S.(2013),“AGaussianprocess-basedRRTplannerforthe
+explorationofanunknownandclutteredenvironmentwith aUAV”,AdvancedRobotics,
+Vol.27No.6,pp.431-443.
+Correspondingauthor
+HaoyangChengcanbecontactedat:haoyang.cheng@student.unsw.edu.au
+Topurchasereprintsofthisarticlepleasee-mail:reprints@emeraldinsight.com
+Orvisitourwebsiteforfurtherdetails:www.emeraldinsight.com/reprints
