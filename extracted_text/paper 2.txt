@@ -1,0 +1,473 @@
+2020 16th International Conference on Computational Intelligence and Security (CIS)
+A multi-critic deep deterministic policy gradient UAV path planning
+Runjia Wu, Fangqing Gu∗, Jie Huang
+Guangdong University of Technology
+Guangdong, China. E-mail:fqgu@gdut.edu.cn
+Abstract—DeepDeterministicPolicyGradientisareinforce- the face of a complex environment. Paper [13] solved the
+mentlearningmethod,whichiswidelyusedinunmannedaerial problem of slow convergence caused by sparse rewards by
+vehicle(UAV)forpathplanning.Inordertosolvetheenviron- introducingtherewardfunctionofanartificialpotentialfield.
+mental sensitivity in path planning, we present an improved
+Paper [14] started with DDPG experience base combined
+deep deterministic policy gradient for UAV path planning.
+with simulated annealing algorithm, and accelerated the
+Simulationresultsdemonstratethatthealgorithmimprovesthe
+convergence speed, convergence effect and stability. The UAV learning process of DRL through multi-experience pool
+can learn more knowledge from the complex environment. (MEP).Papers[13],[15]useLSTMtoapproximatethecrit-
+Keywords-UAV; Reinforcement learning; Deep deterministic ical network by combining the current training observation
+policy gradient. sequence with the historical observation sequence, so that
+theUAVcanbreakawayfromtheU-shapedobstacleinlarge
+I. INTRODUCTION path planning. Paper [16] presented three improvements,
+In recent years, due to its rapid deployment and control- environmental noise, delay learning and hybrid exploration
+lablemobility,UAVhavebeenwidelyusedinvariousfields, techniques to improve the robustness of DDPG. Neverthe-
+such as search and rescue [1], multi-UAV cooperation [2], less, robustness is still a great challenges for UAV path
+formationflying[3],remotesurveillance[4]andotherfields. planning.
+However, how to make UAV safely fly from any source We extend multi-critic deep deterministic policy gradient
+to the destination without obstacles in unknown working method for solving UAV path planning. Simulation results
+environment becomes a hot research topic for researchers. show that the proposed algorithm is effective with strong
+In the face of complex and uncertain environment, many robust and adaptive capability for solving the path planning
+researchers have proposed solutions to UAV navigation of the UAV flying destination under complex environment.
+problems. The most common method is the motion control The remainder of this paper is organized as follows: In
+problem in the unknown environment such as A-Star [5], Selection II, we briefly review reinforcement learning for
+artificial potential fields [6], rapidly-exploring random tree solving UAV path planning. Section III gives the detailed
+(RRT) algorithm [7] and so on [8]. However, these model- descriptions of the proposed multi-critic deep deterministic
+based solutions can hardly be applied to practice in the policy gradient method. Section IV provides the simulation
+complex uncertain environment. results and analyses the empirical results. Finally, we draw
+In order to overcome the above limitations, some re- a conclusion and future work in Section V.
+searchersproposealearning-basedapproach.Reinforcement
+II. REINFORCEMENTLEARNINGFORSOLVINGUAV
+learning (RL) adopts correct action strategies through the
+PATHPLANNING
+interactive learning between agents and the environment.
+A. UAV Motion Model
+In other words, RL is independent of environment model
+and prior knowledge. UAV navigation was modeled as a The motion model of UAV is the basis of path planning.
+reinforcement learning problem and validated autonomous Usually the UAV system is controlled by six degrees of
+fight in unknown environments in [9]. DeepMind inno- freedom, representing three coordinates of the UAV posi-
+vatively combines deep learning (DL) with RL to form tion [x,y,z] and controlling the three freedoms of speed
+deep reinforcement learning (DRL). DRL transforms high- change ϑ, vertical change ϑ and rotations around trans-
+y
+dimensional input into lower-dimensional state that is more verse axes ϑ . The six degree of freedom kinematics mode
+z
+realistic. Deep Q Network (DQN) [10], Double DQN [11] [x,y,z,ϑ,ϑ ,ϑ ]isusedtodescribetheinternalstateofthe
+y z
+andDuelingDQN[12]havebeenproposedgraduallyalong UAV.
+with DRL research and have a bright performance in path For the sake of brevity and without loss of generally,
+planning. Since DQN action space is discrete, DDPG is we adopt the kinematic mode of three degrees of freedom
+proposed to solve the problem of continuous control of instead of six degrees of freedom. Assume that the UAV
+engineering problems. Continuity of DDPG is widely used is fixed at a horizontal altitude, so that UAVs activity is
+in path planning, but its convergence is often unstable in limited to the x-y plane. Ignoring the momentum impact of
+978-1-6654-0445-7/20/$31.00 ©2020 IEEE 6
+DOI 10.1109/CIS52066.2020.00010
+01000.0202.66025SIC/9011.01
+:IOD
+| EEEI
+0202©
+00.13$/02/7-5440-4566-1-879
+|
+)SIC(
+ytiruceS
+dna
+ecnegilletnI
+lanoitatupmoC
+no
+ecnerefnoC
+lanoitanretnI
+ht61
+0202
+Authorized licensed use limited to: Univ of Calif Santa Barbara. Downloaded on June 23,2021 at 03:13:46 UTC from IEEE Xplore. Restrictions apply.
+the UAV during fight, the vector ζ = [x,y,φ] is used to C. State and Action Specification
+simplify the description of the position and motion of the
+The state obtained by the environment of UAV is com-
+UAV. The control vector of UAV is a =[a ,a ], where
+t v,t φ,t posedofthreeparts,i.e.,theinternalstate,theirinteractions
+a is the control speed and a is the control yaw angle.
+v,t φ,t with the environment and the location. There are six coor-
+Therefore, the vector ζ can be expressed as: dinatesξ =[x,y,x ,y ,ϑ,ψ]representingtheinformation
+u v v
+⎧ about the their internal state, where [x,y] is the absolute
+⎪⎨ x
+t+1
+=x
+t
++a
+v,t
+×cosφ
+t+1
+,
+position of the UAV, [x ,y ] is the velocity component
+v v
+⎪⎩ y t+1 =y t +a v,t ×sinφ t+1 , (1) of the corresponding coordinate, [ϑ] is the direction of
+φ =φ +a . flight, and [ψ] is the yaw angle. Secondly, in the real-time
+t+1 t φ,t
+interaction between UAV and environment, the surrounding
+B. Reinforcement Learning environment state is determined by radar, range finder and
+other tools. In this paper ,we use range finders to receive
+In reinforcement learning, the agent changes its state the environment state ξ f = [d 0 ,...,d N ], where d i is the
+through interaction with the environment so as to ob- i-th range finder mounted by the UAV. Lastly, the target
+tain returns and achieve the optimal strategy. The model position of the UAV is expressed as ξ =[x ,y ]. Through
+is usually expressed using a five-tuple S,A,P,R,γ of a the combination of the three observat T ion me t tho t ds, we can
+Markov Decision Process (MDP). S is a set of environ- get the final description of the observation space s.
+mental state descriptions. A is a set of all possible actions,
+P :S×A×S →[0,1] represents the transition probability s=[x,y,x v ,y v ,ϑ,ψ,d 0 ,··· ,d N ,x t ,y t ]
+of taking an action from S to the next S. R = S × A
+ThecontrolofUAViscomplicatedintheactualsituation,
+represents the immediate reward after the agent takes an
+action. γ ∈ [0,1] is the discount factor which represents whichrequiresmultiplecommandstoachievethemotionof
+the UAV. In our work, we appropriately selected the UAV’s
+the difference in importance between future rewards and
+speedandrollasthemotioncontrolcommands,andweuse
+present rewards. Reinforcement learning (RL) is designed
+actiona=[a ,a ]todenotethemotion,wherea ∈[−1,1]
+tomaximizefutur(cid:6)erewards,andasetofrewardscanbeex- v ψ v
+pressed as Rγ = T γi−tr(s ,a ). Based on the reward, denotestheratioofthecurrentspeedtothemaximumspeed,
+t i=t i i where a ∈[−1,1] is a steering signal.
+RL introduce two functions, the state-valued function when ψ
+an agent adopts the policy π: D. Reward Function
+(cid:7) (cid:9)
+(cid:8)∞ We give up the traditional simple sparse reward model
+V π (s t )=E rlr(s t+l ,a t+l )|s t (2) (only when the agent reach the destination can we get the
+l=0 reward) and use a non-sparse reward method. Rewards are
+settoprovideguidanceformodellearning.Obviously,non-
+And the action-value function: sparse rewards provide more navigation domain knowledge
+(cid:7) (cid:9)
+than sparse rewards, and this change does not change the
+(cid:8)∞
+Q π (s t ,a t )=E rlr(s t+l ,a t+l )|s t ,a t (3) policy invariance of rewards.
+The non-sparse reward consist of four constructions:
+l=0
+r=r +r +r +r (4)
+The value function is used to measure the advantages A B C D
+and disadvantages of a certain state or action-state, that is, Where r = τ(d −d ), d − d represents the
+A pre cur pre cur
+whether it is worth for an agent to select a certain state or change in distance between the current position and the
+execute an action in a certain state. Figure 1 illustrates the destination.Whend >d ,r isarewardthatisrelated
+pre cur A
+control of agent under reinforcement learning model. to speed, guiding the UAV to reach the destination quickly.
+(cid:7)(cid:5)(cid:8)(cid:9)(cid:10)(cid:11)(cid:5)(cid:12)(cid:4)(cid:5)(cid:6) r B = −r step is a constant penalty advance to the UAV
+reaches its destination with a minimum number of steps.
+(cid:2)(cid:3)(cid:4)(cid:5)(cid:6) (cid:7)(cid:8)(cid:9)(cid:6)(cid:10)(cid:11)(cid:12)(cid:4) (cid:13)(cid:10)(cid:14)(cid:3)(cid:4)(cid:6) The UAV should be encouraged to complete its missions
+(cid:2)(cid:11)(cid:6)(cid:15)(cid:16)(cid:5) as quickly as possible and punished after each transition.
+(cid:10)
+r =−AΔϕ+r representsarewardforflyingwithout
+(cid:2)(cid:3)(cid:4)(cid:5)(cid:6) (cid:18)(cid:4)(cid:19)(cid:10)(cid:14)(cid:20) C free
+(cid:14) obstacles. It encourages UAV to shorten its range but at
+(cid:17)(cid:6)(cid:10)(cid:6)(cid:4) the same time ensure it can explore more space. The UAV
+(cid:9)
+should be able to fly toward its targets as soon as possible
+with penalties for deviations, but it should be encouraged
+Figure 1: Control of agent under reinforcement learning to move towards free space if there are obstacles in the
+model direction of flight. r prevents the UAV from getting too
+D
+7
+Authorized licensed use limited to: Univ of Calif Santa Barbara. Downloaded on June 23,2021 at 03:13:46 UTC from IEEE Xplore. Restrictions apply.
+close to the obstacle, and d is the minimum distance averageofcritic,wefurtherrewrotetheTDerroraccording
+obs
+betweentheUAVandtheobstacle.TheUAVshouldactively to equation (5). Thus, the average TD error is:
+(cid:10) (cid:11) (cid:12)
+avoid obstacles. If it gets close to obstacles, it will be L = r(s ,a )+γQ(cid:4) s ,a |θQ(cid:2)
+punished greatly, so as to ensure that the UAV can stay avg t t avg t+1 t+1
+away from obstacles. Where τ,A,B,C is a constant which (8)
+(cid:13) (cid:14)(cid:18)
+is to control the size of the reward. 2
+−Q s ,a |θQ .
+avg t t
+III. MULTI-CRITICDDPG WheretheQ(cid:4) istheaverageofthetargetcriticnetworks.
+avg
+A. DDPG Using the same TD error update can cause critics to lose
+Deep Deterministic Policy Gradient (DDPG) adopts the diversity,whileaseparateupdatecanmakeabigdifference.
+network framework of actor- critic reinforcement learning. Therefore, different from DDPG critic network, the local
+TheframeworkofDDPGisillustratedinfigure2.Thecritic error and global error must be considered when calculating
+canjudgethevalueoftheactionbasedontheactor,andthe the loss of critic network. According to equation (8), the
+actor can modify the probability of the action based on the loss function for i-th critic is defined as
+valueofthecritic.Thecriticlearnsthestate-actionvalueby L =αL +βL+η(Q (s ,a |θ )−Q (s ,a |θ)). (9)
+minimizing Time-difference (TD) errors: mc avg i t t i avg t t
+(cid:10) (cid:11) (cid:12) (cid:13) (cid:14)(cid:15) 2 Where α,β and η represent the weight factors.
+L=r(s t ,a t )+γQ(cid:4)s t+1 ,a t+1 |θQ(cid:2) −Q s t ,a t |θQ . (5)
+Algorithm 1 The Proposed MCDDPG Method
+In DDPG method, the convolution neural networks Q
+network and μ network are used to approximate the action- Initialize the parameters θ i Q of critic networks
+v θ alu a e re fu th n e ct p io ar n am an e d te s r t s a o te f -v th a e lu n e e f u u r n al ct n io et n w r o e r s k p s e . c O tiv b e v l i y o . u θ s Q ly, a w nd e Q ne i t ( w s o ,a rk |θ μ i Q ( ) s , |θ i μ). = 1,··· ,K and θμ of the actor
+k μ nowthatthesamplesobtainedbytheagentinRLarehighly Initialize the K target critic networks Q(cid:2)(s,a|θQ (cid:2) ) and
+correlated. The researcher uses the reply buffer to address actortargetnetworkμ(cid:2)(s|θμ (cid:2) )withparame
+i
+tersθQ
+i(cid:2)
+←θQ
+thisproblem.Thecorrelationofsamplesisbrokenbystoring and θμ (cid:2) ←θμ, separately. i i
+experiences (s t ,a t ,r t ,s t+1 ), and then random samples are Initialize the reply buffer R, parameters α,β,η, and τ.
+taken from experience reply when the network trains. for episode=1:M do
+DDPG is derived from the deterministic policy gradient Initialize a random process N for action exploration.
+theorem for MDP. The deterministic policy gradient exists Reset environment and initialize observation state s.
+for MDP with continuous action space by this theorem. for t=1:T do
+When the variance of probability policy approaches zero, Selectactiona =μ(s |θμ)+N accordingtothe
+it is deterministic policy a =μ(s |θ ), i.e. t t t
+(cid:16) t t μ (cid:17) current policy and exploration noise.
+∇
+θ
+J(μ
+θ
+)=
+S
+ρμ(s)∇
+θ
+μ
+θ
+(s)∇
+a
+Qμ(s,a) (cid:17) (cid:17)
+(cid:17) a=μθ(s)
+ds
+(6) S S
+O
+a t
+b
+o m
+t
+r
+a
+e p
+in
+l t e ra
+th
+n a
+e
+si
+r
+t r i
+e
+a o
+w
+n n d
+a
+o
+r
+(
+d
+s m t
+r
+,
+t
+a m t
+a
+, i
+n
+n r
+d
+t ib ,
+o
+s a
+b
+t t c +
+s
+h
+e
+1
+r
+)
+v
+o
+e
+i f n
+n
+R
+e
+N
+w
+.
+s
+tr
+ta
+a
+t
+n
+e
+si
+s
+ti
+t
+o
++
+n
+1
+s
+.
+(cid:10) (cid:15) (s i ,a i ,r i ,s i+1 ) from R.
+=E s∼ρμ ∇ θ μ θ (s)∇Qμ(s,a)| a=μθ(s) Update the K critic networks by minimizing loss
+function in Equation (9).
+B. MCDDPG Update the actor network with policy gradient.
+Although DDPG is widely used in UAV path planning Updatetheparametersoftargetnetworkswithup-
+because it can well solve the continuous motion space. dating rate τ.
+However, it has poor stability and convergence speed be- end for
+causetheactorlearningabilitydependsonthejudgment.A end for
+multi-critic deep deterministic policy gradient (MCDDPG)
+is presented in [17]. It uses the average of the values of K
+IV. EXPERIMENTS
+critics to approximate instead of the action-value function.
+In this section, we verify the convergence and effective-
+1 (cid:8)K ness of the proposed algorithm through simulation results.
+Q (s,a|θ)= Q (s,a|θ ). (7)
+avg K i i
+i=1 A. Experimental platform setting
+Whereθ ∈θistheparameterofthei-thcritic.Theaverage We built a random environment of different complexity.
+i
+of all critics can diminish the impact of the overestimation The terrain of each environment is a rectangular area of
+problem caused by the individual critic. Combined with the 500 × 600. Some cylindrical obstacles are generated by
+8
+Authorized licensed use limited to: Univ of Calif Santa Barbara. Downloaded on June 23,2021 at 03:13:46 UTC from IEEE Xplore. Restrictions apply.
+(cid:2)(cid:13)(cid:6)(cid:11)(cid:10)(cid:14)(cid:15)(cid:4)(cid:6)(cid:16)(cid:11)(cid:10)(cid:17) (cid:18)(cid:10)(cid:9)(cid:6)(cid:9)(cid:13)(cid:14)(cid:15)(cid:4)(cid:6)(cid:16)(cid:11)(cid:10)(cid:17)
+(cid:7)(cid:21)(cid:6)(cid:15)(cid:22)(cid:15)(cid:23)(cid:4)(cid:14) (cid:21)(cid:16)(cid:12)(cid:15)(cid:11)(cid:28) (cid:7)(cid:21)(cid:6)(cid:15)(cid:22)(cid:15)(cid:23)(cid:4)(cid:14)
+(cid:3)(cid:3)(cid:14)(cid:10)(cid:20)(cid:15)(cid:4)(cid:5)(cid:6)
+(cid:25)(cid:25)(cid:25)(cid:21)(cid:21)(cid:20)(cid:20)(cid:10)(cid:10)(cid:6)(cid:6)(cid:4)(cid:4) (cid:19)(cid:19)(cid:11)(cid:11)(cid:20)(cid:20)(cid:9)(cid:9)(cid:13)(cid:13)(cid:21)(cid:14)(cid:15)(cid:4)(cid:6)(cid:16)(cid:11)(cid:10)(cid:10)(cid:17)(cid:17) (cid:25)(cid:25)(cid:21)(cid:21)(cid:20)(cid:20)(cid:10)(cid:10)(cid:6)(cid:6)(cid:4)(cid:4) (cid:24)(cid:24)(cid:14)(cid:14)(cid:15)(cid:15)(cid:4)(cid:4)(cid:6)(cid:16)(cid:11)(cid:10)(cid:17) (cid:31)(cid:26)(cid:3)(cid:14)(cid:10)(cid:20)(cid:15)(cid:4)(cid:5)(cid:6)
+(cid:7)(cid:5)(cid:8)(cid:9)(cid:10)(cid:11)(cid:5)(cid:12)(cid:4)(cid:5)(cid:6)
+(cid:24)(cid:5)(cid:21)(cid:25)(cid:6)(cid:26)(cid:27)(cid:10)(cid:28)(cid:4)(cid:14) (cid:29)(cid:15)(cid:20)(cid:20)(cid:4)(cid:5)(cid:26)(cid:27)(cid:10)(cid:28)(cid:4)(cid:14) (cid:7)(cid:7)
+(cid:27)
+(cid:25)(cid:25)
+(cid:10)
+(cid:6)(cid:6)
+(cid:28)
+(cid:21)(cid:21)
+(cid:4)
+(cid:25)(cid:25)
+(cid:14)
+(cid:6)(cid:6)
+(cid:3)(cid:3)(cid:14)(cid:14)(cid:10)(cid:10)(cid:20)(cid:20)(cid:15)(cid:15)(cid:4)(cid:4)(cid:5)(cid:5)(cid:6)(cid:6)
+(cid:24)(cid:5)(cid:21)(cid:25)(cid:6)(cid:26)(cid:27)(cid:10)(cid:28)(cid:4)(cid:14)(cid:29)(cid:15)(cid:20)(cid:20)(cid:4)(cid:5)(cid:26)(cid:27)(cid:10)(cid:28)(cid:4)(cid:14)(cid:7)
+(cid:27)
+(cid:25)
+(cid:10)
+(cid:6)
+(cid:28)
+(cid:21)
+(cid:4)
+(cid:25)
+(cid:14)
+(cid:6)
+(cid:25)(cid:26)(cid:14)(cid:5)(cid:11)(cid:9)(cid:27)(cid:4)
+(cid:10)(cid:10)(cid:3)(cid:3)(cid:3)(cid:3)(cid:3)(cid:3)(cid:3)(cid:3)(cid:3)(cid:3)(cid:3)(cid:3)(cid:3)(cid:4)(cid:4)(cid:5)(cid:5)(cid:6)
+(cid:16)(cid:8)(cid:9)(cid:6)(cid:10)(cid:11)(cid:12)(cid:4) (cid:6)(cid:10)(cid:14)(cid:3)(cid:4)(cid:6) (cid:9)(cid:16)(cid:30)(cid:6)(cid:26)(cid:25)(cid:21)(cid:20)(cid:10)(cid:6)(cid:4)
+(cid:9)(cid:16)(cid:30)(cid:6)(cid:26)(cid:25)(cid:21)(cid:20)(cid:10)(cid:6)(cid:4)
+(cid:24)(cid:5)(cid:21)(cid:25)(cid:6)(cid:26)(cid:27)(cid:10)(cid:28)(cid:4)(cid:14) (cid:29)(cid:15)(cid:20)(cid:20)(cid:4)(cid:5)(cid:26)(cid:27)(cid:10)(cid:28)(cid:4)(cid:14) (cid:7) (cid:27) (cid:25) (cid:10) (cid:6) (cid:28) (cid:21) (cid:4) (cid:25) (cid:14) (cid:6) (cid:24)(cid:5)(cid:21)(cid:25)(cid:6)(cid:26)(cid:27)(cid:10)(cid:28)(cid:4)(cid:14) (cid:29)(cid:15)(cid:20)(cid:20)(cid:4)(cid:5)(cid:26)(cid:27)(cid:27)(cid:10)(cid:28)(cid:4)(cid:14) (cid:7)(cid:25)(cid:6)(cid:21)(cid:25)(cid:6)
+(cid:27)(cid:10)(cid:28)(cid:4)(cid:14)
+(cid:17)(cid:10)(cid:22)(cid:21)(cid:12)(cid:15)(cid:5)(cid:3)
+(cid:22)(cid:23)(cid:10)(cid:3)(cid:4)(cid:6)(cid:14)(cid:15)(cid:4)(cid:6)(cid:16)(cid:11)(cid:10)(cid:17) (cid:22)(cid:23)(cid:10)(cid:3)(cid:4)(cid:6)(cid:14)(cid:24)(cid:14)(cid:15)(cid:4)(cid:6)(cid:16)(cid:11)(cid:10)(cid:17)
+(cid:22)(cid:15)(cid:5)(cid:15)#(cid:8)(cid:10)(cid:6)(cid:11)$(cid:26)(cid:9)(cid:10)(cid:22)(cid:21)(cid:12)(cid:15)(cid:5)(cid:3)
+(cid:17)(cid:10)(cid:22)(cid:21)(cid:12)(cid:15)(cid:5)(cid:3)(cid:26)"(cid:16)(cid:12)(cid:15)(cid:11)(cid:28) !(cid:21)(cid:4)(cid:14)(cid:15)(cid:4)(cid:5)(cid:11)(cid:4)(cid:26)"(cid:16)(cid:16)(cid:12)
+Figure 2: DDPG motion control framework.
+(a) (b) (c)
+Figure 3: The 3000 set of the training.
+a uniform distribution U(50,150). The UAV is fixed at B. Performance of MCDDPG
+horizontal altitude of 100 meters and equipped with nine In order to verify the performance of MCDDPG, we
+sensors with a detection range of 100 meters. The UAV compareMCDDPGwithDDPGonasynthetictestproblem.
+flies from its initial position to its designated target. The TheparametersofDDPGarethesaneasusedinMCDDPG.
+maximum speed of the UAV is limited to a v,max =50m/s As shown in the figure 4, 3000 sets were used to train both
+and the maximum yaw is a ψ,max =π/2. models. The success rate of 5-MCDDPG was 88%, while
+DDPGwas77%.Obviously,MCDDPGhasabettersuccess
+rate and convergence rate than DDPG. 1) MCDDPG uses
+The critic networks adopt the same network structure
+of 19 × 400 × 300 × 1. The observed states as inputs multicriticnetworktogainwideraccesstoinformationfrom
+theenvironment,enablingsuccessratestostartrisingat200
+are normalized to 19 dimensions and the actor network
+composed of 19×400×300×2 uses 2 dimensions output episodes.2)Byaveragingthemulti-criticnetwork,theover-
+action to control the UAV. The parameters α,β,η are set estimation of the network is avoided and the convergence
+to 0.6,0.4,0.05 in MCDDPG. UAV observation and action speed is greatly improved.
+are normalized to [−1,1]. Adam Optimizer [18] is used  6 X F F H V V 5 D W H
+    
+    
+to learn network parameters. The learning rate of actor     
+    
+and the critic are set to be 10−4 and 10−3. In addition,                
+the discount factor is γ = 0.99, the soft update rate is                
+    
+ε = 0.001, and other hyperparameters: min-batch size                
+    
+N =256,experiencereplyR=10000.Inaddition,noiseN
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+withuniformdistributionU(−0.25,0.25)isusedtoincrease                
+    
+the exploration space. The parameter of reward is set to:                  G P G F S G J G S J
+τ =1.2,A=1.5,B =32,C =25,andthemaximumvalue Figure 4: Th   e   s    uc    c    es    s    ra      te    o    f ( S L  Vr   R   Ge H Vac      hin      g t     h   e     t   ar   g     et      in training
+of iteration is T =1000. Formorespecificverification,wetrainedthemodelthree
+9
+Authorized licensed use limited to: Univ of Calif Santa Barbara. Downloaded on June 23,2021 at 03:13:46 UTC from IEEE Xplore. Restrictions apply.
+times, intercepted 3000 episodes in 6000 sets and averaged [6] G. Luo, J. Yu, Y. Mei, and S. Zhang, “UAV path planning
+them, selected the number of steps per episode, the average in mixed-obstacle environment via artificial potential field
+methodimprovedbyadditionalcontrolforce,”AsianJournal
+reward per episode, and the total reward per episode, as
+ofControl,vol.17,no.5,pp.1600–1610,2015.
+showninFigure4.(ThegreenlinerepresentsMCDDPGand
+[7] R.KalaandK.Warwick,“Planningofmultipleautonomous
+the red line represents DDPG). We can see that MCDDPG vehicles using RRT,” in IEEE International Conference on
+fluctuates much less than DDPG, and the reward is also CyberneticIntelligentSystems,2011,pp.20–25.
+better than DDPG. In order to prove the generalization [8] F. J. Rubio, F. J. Valero, J. L. Sun˜er, and V. Mata, “Simul-
+ability of the two algorithms, we further calculated the taneous algorithm for trajectory planning,” Asian Journal of
+Control,vol.12,no.4,pp.468–479,2010.
+successrate,collisionrateandlossrateofagents.Theresults
+[9] S. Ross, N. Melik-Barkhudarov, K. S. Shankar, A. Wendel,
+are shown in Table I.
+D.Dey,J.A.Bagnell,andM.Hebert,“Learningmonocular
+reactive UAV control in cluttered natural environments,” in
+Table I: The result of algorithms 2013 IEEE International Conference on Robotics and Au-
+tomation,2013,pp.1765–1772.
+LearningStage ExploitingStage
+[10] V. Mnih, K. Kavukcuoglu, and D. Silver et al., “Human-
+success collision loss success collision loss level control through deep reinforcement learning,” Nature,
+vol.518,no.7540,pp.529–533,2015.
+DDPG 77.2% 18.4% 4.3% 76.2% 11.5% 12.3%
+[11] H.VanHasselt,A.Guez,andD.Silver,“Deepreinforcement
+MCDDPG 88.5% 9.8% 1.7% 92.1% 1.6% 6.3% learning with double Q-learning,” in Proceedings of the
+Thirtieth AAAI Conference on Artificial Intelligence, 2015,
+pp.2094–2100.
+The result show that the generalization of MCDDPG is [12] Z. Wang, T. Schaul, M. Hessel, H. V. Hasselt, M. Lanctot,
+better than that of DDPG. The success rate is increased by and N. D. Freitas, “Dueling network architectures for deep
+3.6% than 1% of DDPG. We can note that the loss rate reinforcement learning,” in Proceedings of the 33rd Interna-
+tional Conference on International Conference on Machine
+of model exploiting is greatly improved compared with the
+Learning,2016,pp.1995–2003.
+modetraining.Themodeltrainingcanavoidthecollisionof
+[13] B.LiandY.Wu,“PathplanningforUAVgroundtargettrack-
+UAV with obstacles, which is useful in practical situations. ingviadeepreinforcementlearning,”IEEEAccess,vol.8,pp.
+29064–29074,2020.
+V. CONCLUSIONANDFUTUREWORK [14] Z. Hu, W. Kaifang, X. Gao, Y. Zhai, and Q. Wang, “Deep
+In this paper, we extended MCDDPG for solving the reinforcement learning approach with multiple experience
+pools for UAVs autonomous motion planning in complex
+path planning of UAV flying destination under complex
+unknown environments,” Sensors, vol. 20, no. 7, p. 1890,
+environment.Simulationresultsshowthattherealgorithmis 2020.
+superiortothetraditionalDDPGinpathplanning.However, [15] C. Wang, J. Wang, Y. Shen, and X. Zhang, “Autonomous
+someissuesremaintoberesolved,suchasMCDDPGhyper- navigation of uavs in large-scale complex environments: A
+parameter settings, improvements to non-sparse rewards, deepreinforcementlearningapproach,”IEEETransactionson
+VehicularTechnology,vol.68,no.3,pp.2124–2136,2019.
+experience reply settings and so on.
+[16] K.Wan,X.Gao,Z.Hu,andG.Wu,“Robustmotioncontrol
+REFERENCES for UAV in dynamic uncertain environments using deep
+reinforcement learning,” Remote Sensing, vol. 12, no. 4, p.
+[1] T. Tomic, K. Schmid, P. Lutz, A. Domel, M. Kassecker, 640,2020.
+E. Mair, I. L. Grixa, F. Ruess, M. Suppa, and D. Burschka, [17] J. Wu, R. Wang, R. Li, H. Zhang, and X. Hu, “Multi-critic
+“Toward a fully autonomous uav: Research platform for DDPGmethodanddoubleexperiencereplay,”in2018IEEE
+indoorandoutdoorurbansearchandrescue,”IEEERobotics InternationalConferenceonSystems,Man,andCybernetics,
+&AutomationMagazine,vol.19,no.3,pp.46–56,2012. 2018,pp.165–171.
+[2] Q. Yang, Y. Zhu, J. Zhang, S. Qiao, and J. Liu, “UAV [18] D.P.KingmaandJ.Ba,“Adam:Amethodforstochasticop-
+air combat autonomous maneuver decision based on DDPG timization,”inThe3rdInternationalConferenceforLearning
+algorithm,” in 2019 IEEE 15th International Conference on Representations,2015,pp.1–15.
+ControlandAutomation(ICCA),2019,pp.37–42.
+[3] H. SiraRamłrez, R. CastroLinares, and G. PurielGil, “An
+activedisturbancerejectionapproachtoleader-followercon-
+trolled formation,” Asian Journal of Control, vol. 16, no. 2,
+pp.382–395,2014.
+[4] R. Stevens, F. Sadjadi, J. Braegelmann, A. Cordes, and
+R. Nelson, “Small unmanned aerial vehicle (UAV) real-
+timeintelligence,surveillanceandreconnaissance(ISR)using
+onboardpre-processing,”ProcSPIE,vol.6967,2008.
+[5] J.K.Howlett,T.W.Mclain,andM.A.Goodrich,“Learning
+real-time A* path planner for unmanned air vehicle target
+sensing,” Journal of Aerospace Computing Information and
+Communication,vol.3,no.3,pp.108–122,2012.
+10
+Authorized licensed use limited to: Univ of Calif Santa Barbara. Downloaded on June 23,2021 at 03:13:46 UTC from IEEE Xplore. Restrictions apply.

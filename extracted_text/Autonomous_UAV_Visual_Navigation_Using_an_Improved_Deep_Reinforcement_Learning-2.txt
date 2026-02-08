@@ -1,0 +1,571 @@
+Received22May2024,accepted3June2024,dateofpublication5June2024,dateofcurrentversion13June2024.
+DigitalObjectIdentifier10.1109/ACCESS.2024.3409780
+Autonomous UAV Visual Navigation Using an
+Improved Deep Reinforcement Learning
+HUSSEINSAMMA 1 ANDSAMIEL-FERIK 2,3
+1SDAIA-KFUPMJointResearchCenterforArtificialIntelligence(JRC-AI),KingFahdUniversityofPetroleumandMinerals,Dhahran31261,SaudiArabia
+2ControlandInstrumentationEngineeringDepartment,KingFahdUniversityofPetroleumandMinerals,Dhahran31261,SaudiArabia
+3ResearchCenterforSmartMobilityandLogistics,KingFahdUniversityofPetroleumandMinerals,Dhahran31261,SaudiArabia
+Correspondingauthor:HusseinSamma(hussein.binsamma@kfupm.edu.sa)
+ThisworkwassupportedbySaudiDataandAIAuthority(SDAIA)andKingFahdUniversityofPetroleumandMinerals(KFUPM)under
+theSDAIA-KFUPMJointResearchCenterforArtificialIntelligenceGrantJRCAI-RG-07.
+ABSTRACT In recent years, unmanned aerial vehicles (UAVs) have grown in popularity for a variety
+of purposes, including parcel delivery, search operations for missing persons, and surveillance. However,
+autonomously navigating UAVs in dynamic environments is a challenging task due to the presence of
+moving objects like pedestrians. In addition, traditional deep reinforcement learning approaches suffer
+from slow learning rates in dynamic situations and they need substantial training data. To improve
+learning performance, the presentstudy proposed an enhanced deep reinforcement learning approachthat
+encompasses two distinct learning stages namely the reinforced and self-supervised. In the reinforced
+learningstage,thedeepQ-learningnetwork(DQN)hasbeenimplementedandtrainedguidedbythelossin
+thebellmenequation.Ontheotherhand,theself-supervisedstageisresponsibleforfine-tuningthebackbone
+layers of DQN and it was directed by the contrastive loss function. The main benefit of incorporating the
+self-supervisedstageistospeeduptheencodingoftheinputscenecapturedbytheUAVcamera.Tofurther
+enhancethenavigationperformances,anobstacledetectionmodelwasembeddedtoreduceUAVcollisions.
+For experimental analysis, we have utilized an outdoor UAV-simulated environment called Blocks. This
+environment contains stationary objects that mimic buildings, as well as moving pedestrians. The study
+undertaken indicates that the implementation of the self-supervised stage led to significant improvements
+in navigation performance. Specifically, the simulated UAV was able to navigate longer distances in the
+correct direction toward the goal point. Moreover, the conducted analysis shows a significant navigation
+performanceascomparedwithotherDQN-basedapproacheslikedoubleDQNandduelingDQN.
+INDEXTERMS UAV,visualnavigation,deepreinforcementlearning,obstacleavoidance,DQN.
+I. INTRODUCTION For vision-based approaches, using deep reinforcement
+UAVs are increasingly used for several applications due to learningmodelshasemergedasthepredominantmethodol-
+theirhighmobility,easeofdeployment,andlowmaintenance ogyemployedforUAVnavigation[1],[2],[3],[4],and[5].
+costs. However, UAV autonomous navigation is considered These models utilize computer vision techniques to encode
+as one of the most challenging tasks to implement. Vision- the captured scenes of the navigated environment with the
+based models are extensively employed in the field of UAV aim of navigating toward the desired destination. The work
+navigationowingtotheircost-effectivenessandadaptability, of Zhang et al. [1] implemented the Twin Delayed Deep
+enablingoperationindiverseenvironmentssuchasindoors, Deterministic Policy Gradients (TD3) algorithm for UAV
+outdoors,andundervariousweatherconditions. navigationinmulti-obstacleenvironments.Theirmodelwas
+trained in a simulated environment, where the UAV learns
+to navigate to a target destination while avoiding obstacles.
+The associate editor coordinating the review of this manuscript and However, their virtual environment was simple and did not
+approvingitforpublicationwasYu-DaLin . considerreal3Dmovingobjectslikeahuman.Furtherstudy
+2024TheAuthors.ThisworkislicensedunderaCreativeCommonsAttribution-NonCommercial-NoDerivatives4.0License.
+VOLUME12,2024 Formoreinformation,seehttps://creativecommons.org/licenses/by-nc-nd/4.0/ 79967
+H.Samma,S.El-Ferik:AutonomousUAVVisualNavigation
+was conducted in [2] where they adopted a DQN model for reinforcement learning strategy based on saliency detection
+UAV navigation. The main objective of the trained UAV is foraflyingobstacle.Theirworkfocusedonusingaconvolu-
+tovisitallmobiletargetswiththeleastenergyconsumption. tionneuralnetworktogetreliableestimatesofthepositions
+Their approach was evaluated in both simulation and real ofobstacles.Intheirexperiment,theytestedtheirapproachin
+field and the results show that the DQN agent can achieve a semi-physical aircraft simulation with different scenarios
+goodperformances.Nevertheless,DQNalgorithmsrequirea including flying in unpredictable trajectories towards the
+large amount of training data to learn encoding the trained UAV, flying in the central positive orientation, or flying
+environment. Shantia et al. proposed a two-stage visual towards the right or left. However, the effectiveness of the
+navigation approach which has been shown to be effective proposed approach is heavily dependent on the accuracy
+inbothsimulatedandreal-worldenvironments[3].Thefirst of the saliency detection algorithm and not the navigation
+stagewasusedtoestimatetherobot’spositionandthesecond performance.
+stagewastrainedtonavigatetherobottoatargetdestination A strategy for UAV obstacle avoidance that is based
+using the estimated positions. A CNN-based scheme for on CNN was introduced in [4]. They have used Airsim
+automatic obstacle avoidance was investigated in [4]. The simulation environment to train the proposed CNN model.
+central concept is that a CNN model was trained using the A reward-driven obstacle avoidance approach was demon-
+input image captured by the frontal camera of the UAV strated in [7] where the implemented U-Net-based network
+to forecast both the steering angle as well as the collision predicts the subsequent motion of the UAV. Nevertheless,
+probabilityoftheUAVpath. inbothstudies,theydidnotaccountformovingpedestrians
+Nevertheless, the approaches mentioned above did not asadynamicobstaclewhichmakesnavigationmoredifficult.
+work in dynamic environments that contain moving obsta- Zhangetal.investigatedthechallengeofnavigatingwithin
+cles.Itshouldbenotedthathandlingadynamicenvironment amulti-obstacleenvironment[1].Theyhaveproposedtouse
+is a challenge due to the fact that deep reinforcement of an actor-critic network to extract observational features
+learning models will need a larger number of training trials from the surrounding environment. They set up ten static
+tocomprehendthenavigationalenvironmentifobstaclesare obstacles five cubes and five cylinders for UAVs training.
+relocated. To mitigate this difficulty, this work introduces During the testing phase, the obstacles were moved in a
+an improved approach where a self-supervised stage is random manner and the results showed that the proposed
+embedded to fine-tune the backbone network of the DQN actor-criticnetworkoutperformedDDPGandTD3.However,
+agentbasedoncollecteddatainthereplaybuffer.Inaddition, the researchers did not consider the presence of moving
+an obstacle avoidance model is added to reduce UAV pedestriansasadynamicobstaclethatincreasesthedifficulty
+collisions. To our knowledge, no work has been done ofnavigation.
+on combining self-supervised learning with reinforcement Indoorlocalizationusingtagsandavisual-inertialsystem
+learning.Thesubsequentpointsprovideaconciseoverview for UAV navigation in GPS-denied environments were
+oftheprimarycontributionofthiswork. studied in [8]. Their concept relies solely on visual cues
+1) Better navigation performance by incorporating a manuallyplacedinsidetheindoorworkplace.Unfortunately,
+self-supervised learning stage that enhances the navi- theirmethodisbasedonvisualinformation,whichmightbe
+gation’sperformance. unreliable to locate landmarks in the presence of occlusion.
+2) EnhancedobstacleavoidanceduringtheUAVnaviga- A CNN-based navigation model was trained offline using
+tionbyembeddinganobstacledetectionmodel. Udacitydatasetimagestolearnbothsteeringanglesandthe
+3) Acost-effectivevisualnavigationsystem,whichexclu- probabilityofobstacles[9].
+sively relies on depth images acquired by a UAV Additional research was conducted in [3], wherein the
+camera. authorsexploredanddevelopedatwo-stagevisualnavigation
+4) Acomprehensiveevaluationoftheproposedapproach approach. In [3], Initially, the location estimator is trained
+throughnavigationinadynamicenvironmentwithboth using standard mapping positions, while the model-free
+staticandmovingobjects. reinforcedlearning(RL)agentlearnsabouttheenvironment
+Thispaperisorganizedasfollows.InSectionII,therelated usinganapproximatedmazefromthemap.Ina2Dsimulated
+work is described. The proposed approach is explained in world, the RL agent learns how the robot controller affects
+Section III. Section IV details the conducted experiments. its actions. Finally, in 3D, the agent uses CNN position
+Finally, the conclusions and future works are given in estimations.
+SectionV. The research in [10] offers asynchronous curriculum
+experiencereplay(ACER)withdeepreinforcementlearning
+II. RELEATEDWORK tosolvetheautonomousmotioncontrol(AMC)problemfor
+A. UAVNAVIGATIONMETHODS UAVsincomplexandunpredictabledynamicsituations.The
+Deep reinforcement learning techniques have been utilized ACER exhibits a 5.59% improvement in convergence out-
+forseveralUAVapplicationssuchasobstacleavoidance[6], comeswhencomparedtothetwindelayeddeepdeterministic
+[4], [7] as well as navigation [8]. For example, to help a policygradient(TD3)algorithm,whichisconsideredasthe
+UAV avoid crashes, researchers in [6] have developed a currentleadingapproach.
+79968 VOLUME12,2024
+H.Samma,S.El-Ferik:AutonomousUAVVisualNavigation
+Navigation of UAV swarms were examined by many In contrast to the aforementioned approaches, this study
+researchers. For example, a framework of fault-tolerant presents a new perspective on addressing UAV navigation
+cooperation for UAV swarms was suggested in [11]. The complexities within dynamic environments, specifically
+proposed strategy, based on network graph theory and targeting the obstacles posed by moving pedestrians and
+they have introduced a geometry-based collision avoidance stationary buildings. The research introduces an advanced
+approach utilizes onboard sensory information to detect methodology integrating self-supervised techniques and an
+and avoid potential collisions during the mission, ensuring obstacle-detectionmodel,detailedinSectionII.
+the safety and integrity of the UAV swarm. Despite the
+required computational resources and processing power B. SELF-SUPERVISEDMETHODSFORUAVAPPLICATIONS
+in [11] however their approach has many potential appli- The concept of self-supervised learning was utilized for
+cation such as search and rescue, cooperative exploration, several UAV tasks such as path planning [19], depth
+and target surveillance. Another study [12] introduces estimation[20],andtracking[21].
+an Information-Fusion based decentralized swarm decision In [19] UAV uses self-supervised learning to evaluate
+whichwasdesignedtocoordinateUAVsswarmsinscenarios the expected surprise. This means it learns to predict
+where communication is disrupted or fails. They have and assess surprises based on its own experiences and
+achieved this objective by integrating visual perception data, without requiring labeled data or external supervision.
+with communication-based information, enabling UAVs to As explained earlier that the traditional reinforcement
+maintain coordinated behaviors even when communication learning often requires extensive trial and error, which can
+is interfered. An aspect of their methodology that presents be time-consuming and inefficient. This method, by using
+a limitation pertains to the offline optimization of weight expected surprise and world modeling, allows the UAV to
+parametersusingaheuristicgeneticalgorithm,whichmight makemoreinformeddecisions,leadingtofasterlearningand
+restrict the system’s adaptability to dynamic or evolving betterperformance.
+environments. Self-supervised learning has been applied for depth
+In2024,severalnewUAVnavigationmethodswereintro- estimation to facilitate UAV obstacle avoidance [20]. The
+duced.Thestudyin[13]examinedthenavigationandlanding method leverages the ease of unlabeled data collection and
+processes of multiple UAVs within indoor settings. They the adaptability of unsupervised learning, particularly self-
+haveintroducedanewapproachforenablingtheautonomous supervised learning, allowing UAVs learn to estimate depth
+landingofUAVsinunfamiliarindoorenvironments,leverag- exclusively from images, without the necessity for ground
+ingvisualSLAM,semanticsegmentation,terrainestimation, truthdepthoranysupplementarydata.Thisresultsinamore
+and a decision-making model. The paper in [14] introduces autonomous and flexible system capable of efficient and
+a novel method called Deep Learning-based Autonomous continuouslearningindiverseenvironments.
+UAV Exploration (DLAE) to address the challenges of For enhancing UAV tracking self-learning was used
+autonomousexplorationforUAVsincomplexandunknown in [21]. By utilizing contrasting instances and self-learning
+environments. Unlike traditional autonomous ground robot methodologies, their approach independently constructs
+exploration,DLAEutilizescamerasinsteadofradarsensors. meaningful feature representations, bypassing the necessity
+To enhance the learning efficiency of autonomous UAV for human annotations. This not only reduces the time and
+exploration, the method in [14] incorporates an invalid effort involved in manual annotation but also enhances the
+action masking scheme. Further recent work was given scalabilityandadaptabilityofthetrackingsystem.
+in[15]wheretheyhaveintroducedacomputervision-based
+collisionavoidancesystemdesignedforautonomousdrones III. THEPROPOSEDAPPROACH
+within indoor environments. The proposed method aims to Thisworkproposedanimproveddeepreinforcementlearning
+ensuresafenavigationaddressingthechallengesofdynamic model for autonomous UAV visual navigation in dynamic
+surroundings, particularly significant for the operation of environments. Figure 2 depicts the navigation environment
+multipledronesinurbansettings.Nevertheless,thismethod for the simulated UAV, with the aim of flying from the
+issuitableforsmall-scaleexperimentsinvolvingtwodrones, startinglocationdisplayedinFigure2(a)tothetargetpoint
+scalability to larger drone swarms may necessitate further shown in green. The ideal path is highlighted in green.
+optimization and testing to ensure effective collision avoid- Figure 2 (b) visually illustrates a snapshot of a flying UAV
+ance. in front of several pedestrians as an obstacle. It should
+In [16], an extensive review was conducted, delving into be noted that this environment consists of two categories
+the realm of AI-based approaches to UAVs navigation. of obstacles: fixed ones, represented by the buildings, and
+This was further complemented by an additional review movable ones, represented by the pedestrians. Furthermore,
+presented in [17], providing deeper insights into the subject the depth image obtained from the current UAV view is
+matter. Furthermore, a recent review paper, documented visibleinthelower-leftcornerofFigure2(b).
+in [18], provided a comprehensive explanation of path Themainarchitectureoftheproposednavigationsystemis
+planningmethodologiestailoredspecificallyforautonomous illustratedinFigure3,anditincludestwotrainingstrategies
+UAVs. wherethefirstofwhichisreinforcedlearning,andthesecond
+VOLUME12,2024 79969
+H.Samma,S.El-Ferik:AutonomousUAVVisualNavigation
+FIGURE2. TheactionspaceofthesimulatedUAV.
+TABLE1. TheimplementedUAVactions.
+needs to be executed by the UAV which includes forward
+movement,movingalonganangleof45degrees,ormoving
+along an angle of −45 degrees as described in Table 1 and
+illustratedinFigure1.Oneshouldnotedthatforeachaction
+themovementoftheUAVwassettoadurationof3seconds.
+The reason for that is to make sure that the UAV is making
+small navigation steps and to avoid the collision of near
+obstacles. On the other hand, less than 3 seconds step size
+willincreasethetrainingtimeofUAV.
+B. DQNARCHITECTURE
+Inthisstudy,theDQNmodelwasimplementedusingapre-
+trainedResNet50networkwheretheclassificationlayerhas
+beenreplacedwithafullyconnectednetworkof512neurons.
+However,thelastlayercontains3neuronswhichwillpredict
+theQ-value(reward)ofeachactionshowninFigure3.
+C. DQNREWARDFUNCTION
+The reward function is the most important part of deep
+FIGURE1. ThenavigationenvironmentforUAV(a)atopviewwiththe reinforcement learning. The formulated reward function in
+optimalnavigationpath,and(b)AsnapshotofanavigatedUAVwitha
+depthview,acquiredbytheUAVcamera.
+thisworkisdefinedasfollows:
+Reward
+ofwhichisself-supervisedlearningfromthecollecteddepth
+
+if collision occurredorUAV
+images.Theselearningmethodsareexplainedasfollows. 0
+exceeds the limit of navigation
+=
+D
+A.
+ur
+R
+in
+E
+g
+IN
+th
+F
+e
+O
+r
+R
+e
+C
+in
+E
+f
+D
+orc
+T
+e
+R
+d
+A
+p
+IN
+ha
+IN
+se
+G
+,D
+O
+Q
+F
+N
+DQ
+re
+N
+ceivesinformationabout
+Use
+Equation (2) o
+a
+t
+r
+h
+e
+e
+a
+r
+(
+w
+te
+i
+r
+s
+m
+e
+inationstate)
+the recent action’s reward value as well as the current UAV
+(1)
+scene, as shown by the depth of the scene captured by
+the front camera of the UAV. Based on the current state AscanbeseeninEquation(1),whentheUAVcollideswith
+depthscenetheDQNwillproducethenavigationactionthat a pedestrian or fixed obstacle, it is considered as a terminal
+79970 VOLUME12,2024
+H.Samma,S.El-Ferik:AutonomousUAVVisualNavigation
+FIGURE3. Theproposednavigationapproach.
+state and the simulation should start again from the initial benegative.Itisdefinedasfollows.
+pointshowninFigure2(a).Anothersimulationtermination
+Diff =(X −X )−(X −X ) (2)
+condition is when the UAV flies in the opposite direction target old target new
+of the target or to an open area with no pedestrian (go to where,X isthelocationofthetargetpoint,X istheold
+target old
+left or right direction). Here we set an empirical threshold locationbeforetakingtheaction,andX isthenewlocation
+new
+for the limit to be 10 units from the optimal path shown ofUAVaftertheaction.
+in Figure 2(a). After each step, a decrease in the reward by
+−0.1isappliedtoencouragetheUAVtoreachitsdestination D. DQNLOSSFUNCTION
+with minimum steps. If the distance from the goal is less The loss function of DQN is computed based on the
+than3units,thenterminatetheepisodeandstartanewtrail.
+Q-learningformulagivenbelow:
+Aftereachnavigationstep,therewardvalueiscomputedas DQN_loss=(cid:0) r t +λ(max aˆ(Q (cid:0) S t+1 ,aˆ(cid:1) )−Q(S t ,a t )(cid:1)2 (3)
+thedifferencebetweenthepreviousdistancetothetargetand
+thecurrentdistanceaftertheexecutionofeachaction.Ifthe wherer t istherewardreceivedbytheDQNagentattimet,
+UAVmovesintheoppositedirection,thenthedistancewill
+λisthelearningrateparameterthattakesavaluefrom0to1.
+VOLUME12,2024 79971
+H.Samma,S.El-Ferik:AutonomousUAVVisualNavigation
+Q(S ,a ) is the Q-value of the currently executed action a
+t t t
+basedongivenstateS t (currentdepth),howeverQ
+(cid:0)
+S t+1
+,aˆ(cid:1)
+istheQ-valueofthenextstateS t+1 .Itisworthmentioning
+thattheDQN_lossisusedonlyduringtheupdatingstepand
+it utilizes a replay buffer data that stores the transaction as
+tuplesof(state,action,reward,nextstate)ascanbeseenin
+Figure3.
+FIGURE4. Obstacledetectionmodel.
+E. SELF-SUPERVISEDTRAINING
+In this stage, the DQN backbone will be fine-tuned in a
+self-supervised manner based on the depth images stored
+in the replay buffer. To accomplish this goal, a triplet of
+threeimages,onepositive,oneaugmented,andonenegative,
+will provided to the DQN backbone, and a contrastive
+loss function will be used to the resultant embedding to
+estimate the loss value. Following that, the DQN backbone
+weights will be iteratively changed dependent on the
+number of self-supervised training epochs. It’s important
+to mention that the choice of positive and negative images
+willberandomizedduringthefine-tuningphase.Therefore,
+as the training buffer size increases, the likelihood of
+obtaining diverse images also increase. The implemented
+contrastive loss function is demonstrated in the following
+equations.
+cos_sim(u,v)=(u.v)/(|(|u|)|.||v||) (4) FIGURE5. Sampleimagesfortrainingobstacledetectionmodel
+(a)obstacle,(b)noobstacle.
+where cos_sim is the cosine function that computes the
+similarity of two vectors u and v in the embedding
+relianceonasingledepthimageratherthanavideosequence,
+space.
+distinguishing between moving and stationary pedestrians
+Contrast_loss posesasignificantchallenge.Therefore,allpedestrianswill
+=−log(exp(cos_sim(u,v+)/τ))/(exp(cos_sim(u,v+)/τ) beperceivedaspotentiallyobstaclesiftheirposetowardthe
+UAV.Inaddition,leveragingdeepreinforcementlearning,the
++exp(cos_sim(u,v−)/τ)) (5)
+system refines its understanding of these moving obstacles
+where u represents the original positive image, v+ is the through trial and error, ultimately determining the safest
+augmented image generated by either rotation, scaling, etc distancefromamovingpedestriansbasedonseveralfactors
+from the positive image as shown in Figure 3. v− is the such as the depth image pixel values and the pedestrian’s
+negative image. Finally, the τ is a hyper-parameter in the pose. Finally, during the training period, this process
+range [0.1 to 0.5] called the temperature coefficient that will become automated, and the integrated self-supervised
+determineshowmuchweighttogivethecomputedsimilarity model will boost the learning rate by encoding generic
+score.Inthisinvestigation,τ wassetto0.1. features.
+Aflowchartillustratingthekeystepsinvolvedinintegrat-
+ingthenavigationmodelwithobstacledetectionispresented
+F. OBSTACLEDETECTIONMODEL
+To further enhance the navigation performances of UAVs, inFigure6.
+an obstacle detection model has been implemented in this
+study. Figure 4 depicts the main idea, which is to feed the IV. EXPERIMENTALRESULTS
+current scene from the UAV’s input camera into another A. SIMULATIONENVIRONMENT
+obstacle detection model so that it can determine if the To carry out experimentation of the proposed approach,
+objectinquestionisanobstacle.TheResNet50servesasthe wehaveusedanexisting3Doutdoorenvironment[22]shown
+backbonenetworkanditiscoupledtoafullyconnected(FC) inFigure1.Thisenvironmentwasbuiltusinganopen-source
+512-neuron softmax classifier that produces two outputs: gaming engine called Unreal Engine. To connect with the
+Yes or No. To train the obstacle avoidance model, the data Block environment and control the movement of the UAV,
+saved in the depth image’s reply buffer that resulted in a wehavechosentoutilizetheAirSimpackage.Thispackage
+terminal state (crash) is considered an obstacle class. Other facilitates the integration of a Python-based navigator with
+depth images, on the other hand, will be classified as no the UnrealEngine through the useof APIs asdemonstrated
+obstacle, asseen in Figure 5.As the implementedapproach inFigure7.
+79972 VOLUME12,2024
+H.Samma,S.El-Ferik:AutonomousUAVVisualNavigation
+TABLE2. Parametersettings.
+that the distance to the goal measure is highly dependent
+on the simulated environment and should be appropriately
+integratedintothedesignedrewardfunction.
+C. LOSSCURVEANALYSIS
+This section will analyze the benefits of the incorporated
+self-supervised block with respect to the loss behavior.
+The superior convergence of the proposed self-supervised
+DQN is demonstrated by the loss curve in Figure 8, which
+yields reduced values. For instance, over the initial one
+thousandepochs,thelossvalueofDQNexceedsonehundred,
+asillustratedinFigure8(a).However,atepochonethousand
+the loss value approaches zero with the implemented self-
+supervised DQN, Figure 8 (b). This is due to the increased
+efficacy of UAV scene encoding, which has accelerated the
+convergenceofthelosscurve.
+D. NAVIGATIONDISTANCEANALYSIS
+Theanalysisinthissectionwasperformedduringthetesting
+phase,subsequenttothetrainingofboththeself-supervised
+FIGURE6. Flowchartofthemainsteps.
+DQN and the DQN. Specifically, the UAV initiated its
+navigationfromanewbeginningpointlocatedapproximately
+halfway along the best path depicted in Figure 2(a). In this
+analysis, two metrics for evaluation are used which are the
+averagedistancefromthegoalandthenumberofcollisions.
+Furthermore, a maximum of 10 steps is permitted for each
+FIGURE7. TheadoptedframeworkforUAVsimulation. evaluatedmodel.Table3displaystheresultsofanexperiment
+thatwasrepeatedtentimeswiththeaveragevaluecalculated.
+B. PARAMETERSSETTINGSANDEVALUATIONMEASURES In terms of the average distance from the goal, the data
+The implemented parameters related to deep reinforcement demonstratethattheproposedself-supervisedDQNachieved
+learning techniques that have been utilized in this study a better value of 157 which means the UAV is closer to
+are given in Table 2. As can be seen, these settings are the target. Nevertheless, the DQN model yielded a larger
+related to the maximum training episode; the size of the distance,indicatingthatitisstillalongwayfromthetarget
+replay buffer, the batch training size which specifies how point.Nevertheless,thereporteddatainTable3demonstrated
+many samples are input to the model in a single batch, that the DQN has a smaller number of collisions. This is
+and the DQN parameters update time which controls the becausetheUAVisusuallymovedtoanopenareawhereno
+calling time for self-supervised and the reinforced training pedestrianismoving.ThiscanbeseeninTable3wherethe
+stages. lastrawshowstheobjectsthattheUAVhitduringthe10test
+Moreover,theevaluationmeasuresconsideredinthisstudy runs.Ascanbeseen,theDQNmodelmovesUAVtowardthe
+aretheaveragedistancefromthegoalandtheaveragenumber Orange_BallshowninFigure1(a).Incontrast,thesuggested
+ofcollisionsduringthetestingtime,aswellasthebehaviorof self-supervisedDQNguidestheUAVtowardthedesignated
+thelossfunctionduringthetrainingtime.Thesemeasuresare destination,resultinginanincreasedlikelihoodofcollisions
+widelyutilizedinotherstudies[1]and[5].Itisworthnoting withpedestrians
+VOLUME12,2024 79973
+H.Samma,S.El-Ferik:AutonomousUAVVisualNavigation
+FIGURE8. Thetraininglosscurvesforadurationof2000epochsforbothmodels(a)and(b).
+TABLE3. Performanceanalysisduringtestingphase.
+FIGURE9. Theconfusionmatrixforneuralnetwork.
+E. PERFORMANCEOFOBSTACLESDETECTIONMODEL
+Tofurtherminimizetheoccurrenceofcollisions,amodelfor conceptisthatthecaptureddepthimagebytheUAVispassed
+detecting obstacles was integrated into the suggested self- totheobstacledetectionmodeltomakeapredictionregarding
+supervised DQN, as depicted in Figure 4. The fundamental whethertheUAVwillcrashornot.Ifthepredictionisyes,the
+79974 VOLUME12,2024
+H.Samma,S.El-Ferik:AutonomousUAVVisualNavigation
+FIGURE10. SnapshotframesduringUAVtestphase.
+UAVwillrandomlyrotatetotheleftorrightby90degreesto no-obstacleclasses.Inaddition,theimpactofincorporating
+avoidthepredictedobstacle. the obstacle detection model into the suggested navigation
+Totraintheobstacledetectionmodel,atotalof443images system was examined. This experiment has been repeated
+forobstacletypeand1374imagesfornoobstaclewereused. 10 times and the findings are presented in Table 4. The
+Afterthat,thedatasetwassplitintotrainwith70%andtest integrated obstacle detection model demonstrates that the
+with30%.Figure9displaystheoutcomesofcalculatingthe UAV can avoid more obstacles while covering a nearly
+confusion matrix. The trained model achieves an obstacle equivalent distance. The last column in Table 4 lists the
+detectionaccuracyof80%forobstacleclassesand95%for names of the objects that the UAV collided with during all
+VOLUME12,2024 79975
+H.Samma,S.El-Ferik:AutonomousUAVVisualNavigation
+TABLE4. Performanceanalysisofobstacledetectionmodel. It should be noted that self-supervised learning often
+useful for dealing with variations and noise in the data.
+Therefore,theDQNnetworklearnstobemorerobusttothese
+variations, making it less prone to overfitting or errors on
+unseendata.Inaddition,thecontrastivelearningapproaches
+makesthebackbonetolearnfromtheinherentstructureand
+relationshipswithintheunlabeleddata,improvingitsability
+to extract meaningful information and encoding a genetic
+feature.Assuch,bylearningthesegenericfeatures,theDQN
+backbonebecomesbetterequippedtohandleunseendataor
+variationswithinthetargetdomain(i.e.duringthenavigation
+ofUAV).
+V. CONCLUSIONANDFUTUREAPPLICATIONS
+An improved deep reinforcement learning for autonomous
+UAV visual navigation is introduced in this study. This
+has been accomplished by incorporating a self-supervised
+deep learning stage to enhance the encoding of DQN for
+the captured scene by the UAV. Further improvement has
+been introduced by implementing an obstacle detection
+model. The conducted results confirm the benefits of the
+incorporatedself-supervisedcomponentforspeedingupthe
+FIGURE11. Theaveragedistancefromthegoalpointforallimplemented
+models. learning curve and navigation performances. As compared
+with other methods, the numerical results showed that
+trials.Ascanbeseenwiththeembeddedobstacledetection the proposed self-supervised DQN reported the maximum
+modelUAVwasabletoavoidmorepedestrians.Nevertheless, traveled distance with a minimum collision rate. This is
+avoidance of moving obstacles remains a challenging task becausetheextractedsceneencodingandobstacledetection
+because they can move toward the UAV and hit it from capabilities lead to more accurate and efficient navigation,
+the side or back. For visual illustration, a snapshot of the astheUAVcanbetterunderstanditssurroundingsandavoid
+navigationenvironment,UAVdepthview,andclassification collisions.
+resultsoftheproposeddetectionmodelisgiveninFigure10. Asafuturework,theself-supervisedDQNcouldbeused
+As can be seen, the suggested model clearly identifies a for indoor visual navigation in GPS-denied environments
+personinthefrontasanobstaclewithredcolor. to perform several tasks such as searching, inspection,
+counting. Additionally, several outdoor applications could
+F. COMPAREWITHOTHERDQN-BASEDMODELS be considered. One such application is navigation through
+Further analysis has been conducted by evaluating the difficult-to-accessareastocollectdataforresearchinfields
+performances against other well-known deep reinforcement likegeology,meteorology,andmarinebiology.Thisenables
+learning algorithms such as Double DQN [23] and Dueling scientists to gather critical information from remote or
+DQN [24]. The underlying principle of both networks is hazardous locations. Another important application is in
+the utilization of an additional network, referred to as the searchandrescuemissions,whereUAVscanautonomously
+target network. It is useful in simulated games to fix the navigate challenging terrains and provide real-time visual
+issue of DQN overestimation. However, this case study is data to help locate missing persons more efficiently. Lastly,
+a simple visual navigation problem where the objective is in precision agriculture, UAVs can autonomously fly over
+to reach a target location in a GPS-denied environment fields to monitor crop health, manage irrigation, and detect
+while avoiding both moving and fixed obstacles. As such, pests or diseases, thereby enhancing farming efficiency and
+incomparisontotheotherversionsstated,DQN’ssimplicity productivity.
+andlowcomplexitymadeitaviableoptioninthisstudy. In addition, several ideas could be investigated for
+In the analysis, we have examined the average distance improving the proposed approach. For example, incorpo-
+from the goal for the UAV to navigate with a maximum of rating object detection models like YOLOv7 or DETR to
+10stepsfor10trials.Theresultsachievedbyallalgorithms enhance obstacle recognition accuracy and handles diverse
+are plotted in Figure 11. As can be seen, the proposed objecttypes.Furtherimprovementscouldbeexplored,such
+self-supervised DQN achieved the highest traveled distance as implementing a lightweight Deep Q-Network (DQN)
+amongallalgorithms.Thisisbecauseoftheself-supervised architecture to enhance deployment efficiency and reduce
+modelwhichisbeneficialtospeedupthelearningrate.Also, inference time. Moreover, the integration of additional
+theobstacledetectionmodelhelpstoreducecrashescaused sensorinputs,suchasthermalcameras,couldyieldvaluable
+bystationaryandmovingobstacles. data across different conditions. By incorporating obstacle
+79976 VOLUME12,2024
+H.Samma,S.El-Ferik:AutonomousUAVVisualNavigation
+detectionmodelsutilizingultrasoundsensors,thenavigation [16] S. Rezwan and W. Choi, ‘‘Artificial intelligence approaches for UAV
+capabilitiesandsafetyoftheUAVcouldbefurtherenhanced. navigation:Recentadvancesandfuturechallenges,’’IEEEAccess,vol.10,
+pp.26320–26339,2022,doi:10.1109/ACCESS.2022.3157626.
+Finally, the proposed approach could be deployed on a
+[17] A.P.Kalidas,C.J.Joshua,A.Q.Md,S.Basheer,S.Mohan,andS.Sakri,
+real UAV and validated in an actual outdoor environment, ‘‘Deep reinforcement learning for vision-based navigation of UAVs in
+ensuring its effectiveness and reliability of the proposed avoidingstationaryandmobileobstacles,’’Drones,vol.7,no.4,p.245,
+Apr.2023,doi:10.3390/drones7040245.
+approach.
+[18] G. Gugan and A. Haque, ‘‘Path planning for autonomous drones:
+Challengesandfuturedirections,’’Drones,vol.7,no.3,p.169,Feb.2023,
+REFERENCES doi:10.3390/drones7030169.
+[19] A. Krayani, K. Khan, L. Marcenaro, M. Marchese, and C.Regazzoni,
+[1] S. Zhang, Y. Li, and Q. Dong, ‘‘Autonomous navigation of UAV in
+‘‘Self-supervisedpathplanninginUAV-aidedwirelessnetworksbasedon
+multi-obstacle environments based on a deep reinforcement learning
+activeinference,’’inProc.IEEEInt.Conf.Acoust.,SpeechSignalProcess.
+approach,’’Appl.SoftComput.,vol.115,Jan.2022,Art.no.108194,doi:
+(ICASSP),Apr.2024,pp.13181–13185.
+10.1016/j.asoc.2021.108194.
+[20] L. Madhuanand, F. Nex, and M. Y. Yang, ‘‘Self-supervised monocular
+[2] A. Soliman, A. Al-Ali, A. Mohamed, H. Gedawy, D. Izham,
+depth estimation from oblique UAV videos,’’ ISPRS J. Photogramm.
+M.Bahri, A. Erbad, and M.Guizani, ‘‘AI-based UAV navigation
+RemoteSens.,vol.176,pp.1–14,Jun.2021.
+framework with digital twin technology for mobile target visitation,’’
+[21] X. Wang, D. Zeng, Y. Li, M. Zou, Q. Zhao, and S. Li, ‘‘Enhancing
+Eng. Appl. Artif. Intell., vol. 123, Aug. 2023, Art.no.106318, doi:
+UAVtracking:Afocusondiscriminativerepresentationsusingcontrastive
+10.1016/j.engappai.2023.106318.
+instances,’’J.Real-TimeImageProcess.,vol.21,no.3,p.78,May2024.
+[3] A.Shantia,R.Timmers,Y.Chong,C.Kuiper,F.Bidoia,L.Schomaker,and
+[22] Blocks Environment. Accessed: Jan. 2024. [Online]. Available:
+M.Wiering,‘‘Two-stagevisualnavigationbydeepneuralnetworksand
+https://microsoft.github.io/AirSim/unreal_blocks/
+multi-goalreinforcementlearning,’’Robot.Auto.Syst.,vol.138,Apr.2021,
+[23] H.VanHasselt,A.Guez,andD.Silver,‘‘Deepreinforcementlearningwith
+Art.no.103731,doi:10.1016/j.robot.2021.103731.
+doubleQ-learning,’’inProc.AAAIConf.Artif.Intell.,Mar.2016,vol.30,
+[4] X. Dai, Y. Mao, T. Huang, N. Qin, D. Huang, and Y. Li,
+no.1,pp.2094–2100,doi:10.1609/aaai.v30i1.10295.
+‘‘Automatic obstacle avoidance of quadrotor UAV via CNN-based
+[24] Z. Wang, T. Schaul, M. Hessel, H. van Hasselt, M. Lanctot, and
+learning,’’ Neurocomputing, vol. 402, pp.346–358, Aug. 2020, doi:
+N.deFreitas, ‘‘Dueling network architectures for deep reinforcement
+10.1016/j.neucom.2020.04.020.
+learning,’’2015,arXiv:1511.06581.
+[5] A. Anwar and A. Raychowdhury, ‘‘Autonomous navigation via deep
+reinforcement learning for resource constraint edge nodes using trans-
+fer learning,’’ IEEE Access, vol. 8, pp.26549–26560, 2020, doi:
+10.1109/ACCESS.2020.2971172.
+[6] Z. Ma, C. Wang, Y. Niu, X. Wang, and L. Shen, ‘‘A saliency-
+based reinforcement learning approach for a UAV to avoid flying
+HUSSEIN SAMMA received the bachelor’s
+obstacles,’’ Robot. Auto. Syst., vol. 100, pp.108–118, Feb. 2018, doi:
+degree in computer engineering from Yarmouk
+10.1016/j.robot.2017.10.009.
+University,Jordan,in2006,themaster’sdegreein
+[7] S.-Y.Shin,Y.-W.Kang,andY.-G.Kim,‘‘Reward-drivenU-Nettraining
+computerengineeringfromJordanUniversityof
+forobstacleavoidancedrone,’’ExpertSyst.Appl.,vol.143,Apr.2020,
+ScienceandTechnology,in2009,andthePh.D.
+Art.no.113064,doi:10.1016/j.eswa.2019.113064.
+[8] N. Kayhani, W. Zhao, B. McCabe, and A. P. Schoellig, ‘‘Tag- degreeincomputervisionandmachinelearning
+basedvisual-inertiallocalizationofunmannedaerialvehiclesinindoor fromUniversitiSainsMalaysia(USM),in2016.
+construction environments using an on-manifold extended Kalman From2018to2022,hewasaSeniorLecturerwith
+filter,’’ Autom. Construct., vol. 135, Mar. 2022, Art.no.104112, doi: theFacultyofEngineering,SchoolofComputing,
+10.1016/j.autcon.2021.104112. Universiti Teknologi Malaysia (UTM), and the
+[9] M.A.Arshad,S.H.Khan,S.Qamar,M.W.Khan,I.Murtza,J.Gwak, SchoolofElectricalEngineering,UniversitiSainsMalaysia(USM).Heis
+and A. Khan, ‘‘Drone navigation using region and edge exploitation- currentlyaResearcherwiththeSDAIA-KFUPMJointResearchCenterfor
+baseddeepCNN,’’IEEEAccess,vol.10,pp.95441–95450,2022,doi: Artificial Intelligence, King Fahd University of Petroleum and Minerals.
+10.1109/ACCESS.2022.3204876. Hisresearchinterestsincludecomputervision,deeplearning,reinforcement
+[10] Z.Hu,X.Gao,K.Wan,Q.Wang,andY.Zhai,‘‘Asynchronouscurriculum learning,swarmintelligence,andsoftbiometrics.
+experience replay: A deep reinforcement learning approach for UAV
+autonomousmotioncontrolinunknowndynamicenvironments,’’IEEE
+Trans.Veh.Technol.,vol.72,no.11,pp.13985–14001,Nov.2023,doi:
+10.1109/TVT.2023.3285595.
+[11] J. Hu, H. Niu, J. Carrasco, B. Lennox, and F. Arvin, ‘‘Fault-tolerant
+cooperativenavigationofnetworkedUAVswarmsforforestfiremoni- SAMIEL-FERIKreceivedtheB.Sc.degreeinelec-
+toring,’’Aerosp.Sci.Technol.,vol.123,Apr.2022,Art.no.107494,doi: tricalengineeringfromLavalUniversity,Québec
+10.1016/j.ast.2022.107494. City,QC,Canada,andtheM.Sc.andPh.D.degrees
+[12] Z. Wang, J. Li, J. Li, and C. Liu, ‘‘A decentralized decision- inelectricalandcomputerengineeringfromPoly-
+making algorithm of UAV swarm with information fusion strat- techniqueMontréal,Canada.Afterthecompletion
+egy,’’ Expert Syst. Appl., vol. 237, Mar. 2024, Art.no.121444, doi:
+of the Ph.D., and postdoctoral positions, he was
+10.1016/j.eswa.2023.121444.
+with the Research and Development Center of
+[13] L.Yang,J.Ye,Y.Zhang,L.Wang,andC.Qiu,‘‘AsemanticSLAM-based
+Systems, Controls, and Accessories, Pratt and
+method for navigation and landing of UAVs in indoor environments,’’
+Whitney,Canada.HeiscurrentlyaProfessorof
+Knowl.-BasedSyst.,vol.293,Jun.2024,Art.no.111693.
+controlandinstrumentationengineeringwiththe
+[14] Y. Zhao, J. Zhang, and C. Zhang, ‘‘Deep-learning based autonomous-
+Department of Systems Engineering, King Fahd University of Petroleum
+explorationforUAVnavigation,’’Knowl.-BasedSyst.,vol.297,Aug.2024,
+Art.no.111925. and Minerals. He is also the Director of the Interdisciplinary Research
+[15] J. Estevez, E. Nuñez, J. M. Lopez-Guede, and G. Garate, ‘‘A low- Center for Smart Mobility and Logistics. His research interests include
+cost vision system for online reciprocal collision avoidance with sensing,monitoring,multiagentsystems,andnonlinearcontrol,withstrong
+UAVs,’’Aerosp.Sci.Technol.,vol.150,Jul.2024,Art.no.109190,doi: multidisciplinaryresearchandapplications.
+10.1016/j.ast.2024.109190.
+VOLUME12,2024 79977
