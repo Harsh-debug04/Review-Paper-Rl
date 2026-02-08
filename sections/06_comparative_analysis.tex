@@ -1,0 +1,126 @@
+\section{Comparative Analysis}
+
+This section synthesizes the findings from the sixteen reviewed studies, highlighting key trends in algorithm selection, environmental complexity, and performance metrics.
+
+\subsection{Algorithm Selection Trends}
+The distribution of algorithms (Fig. \ref{fig:radar}) reveals a clear preference for **Policy-Based** and **Hybrid** methods in recent years. While early works (e.g., [1], [3]) relied on DQN variants due to their simplicity and stability, the limitations of discrete action spaces in agile flight control have driven a shift towards continuous control algorithms like TD3 [11] and PPO [2], [10]. Hybrid architectures [4], [9] that combine the strengths of classical planning (safety, optimality) with learning (adaptability) are emerging as the most robust solution for complex real-world deployment.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{comparison_assets/radar_chart.png}
+\caption{Radar Chart comparing the performance profiles of different algorithm classes. Hybrid methods offer a balance of safety and efficiency, while heuristic methods excel in compute efficiency.}
+\label{fig:radar}
+\end{figure}
+
+\subsection{Reward Function Design}
+The design of the reward function is arguably the most critical component of a successful DRL system. As shown in Fig. \ref{fig:rewards}, nearly all studies incorporate **Goal Reaching (+)** and **Collision Avoidance (-)** terms. However, advanced methods increasingly employ **Shaped Rewards** to guide exploration:
+\begin{itemize}
+    \item \textbf{Smoothness/Energy:} Papers [2], [5], [12] penalize rapid changes in control inputs ($|a_t - a_{t-1}|$) or high angular velocities. This is crucial for physical feasibility and energy efficiency.
+    \item \textbf{Safety Constraints:} Explicit safety formulations, such as the **Collision Safety Envelope** in [7] or the **Lagrangian Constraint** in [10], are superior to simple penalty terms, which often lead to "timid" or "suicidal" policies depending on the penalty magnitude.
+    \item \textbf{Field of View (FOV):} The inclusion of FOV constraints [14] ensures that the UAV keeps the target in sight, addressing the partial observability problem.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{comparison_assets/reward_components.png}
+\caption{Frequency of Reward Function Components. Goal and Collision rewards are universal, but only a subset of papers incorporate smoothness or energy constraints.}
+\label{fig:rewards}
+\end{figure}
+
+\subsection{Simulation vs. Reality}
+A glaring gap in the literature is the reliance on simulation. 15 out of 16 studies were validated exclusively in simulators (Gazebo, AirSim, Unity). While high-fidelity simulators are valuable, they cannot fully replicate the sensor noise, aerodynamic disturbances, and communication latencies of the real world. The notable exception is [12], which successfully transferred a DDPG policy to a physical USV, highlighting the importance of **Domain Randomization** and **System Identification**.
+
+\subsection{Detailed Comparison Tables}
+Tables \ref{tab:comp_part1} and \ref{tab:comp_part2} provide a granular comparison of the methodologies and results.
+
+\begin{table*}[htbp]
+\caption{Comprehensive Comparison of UAV Navigation Algorithms (Part 1: Methodology \& Environment)}
+\label{tab:comp_part1}
+\begin{center}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+\textbf{Study} & \textbf{Algorithm Class} & \textbf{Core Algorithm} & \textbf{State Space} & \textbf{Action Space} & \textbf{Simulator} & \textbf{Real-World?} \\
+\hline
+[1] Wang et al. & Value-Based & FRDDM-DQN & RGB + Pos & Discrete & Custom (OpenGL) & No \\
+\hline
+[2] Fremond et al. & Policy-Based & MAPPO (RNN) & Relative Pos & Continuous & Custom (Urban) & No \\
+\hline
+[3] Carvalho et al. & Value-Based & Dueling DQN & Depth Map & Discrete & AirSim & No \\
+\hline
+[4] Xue \& Chen & Hybrid (Hierarchical) & DQN + Planner & Occupancy Grid & Discrete (High-level) & Gazebo & No \\
+\hline
+[5] Yin et al. & Policy-Based & GARTD3 (Attention) & Laser Range & Continuous & Gazebo & No \\
+\hline
+[6] Duan et al. & Non-DRL & Frontier Planner & Voxel Map & Discrete (Grid) & Custom & No \\
+\hline
+[7] Wang et al. & Value-Based & DQN (Dynamic Reward) & Sensor Data & Discrete & Custom & No \\
+\hline
+[8] AlMahamid et al. & Value-Based & Agile DQN (RNN) & RGB (Glimpses) & Discrete & Unity ML-Agents & No \\
+\hline
+[9] Samma et al. & Hybrid (SSL+RL) & Improved DQN & RGB & Discrete & AirSim & No \\
+\hline
+[10] Yan et al. & Policy-Based (Safe) & PPO-Lagrangian & RGB-D & Continuous & Habitat & No \\
+\hline
+[11] Zhao et al. & Policy-Based & TD3 & Laser Range & Continuous & Gazebo & No \\
+\hline
+[12] Woo et al. & Policy-Based & DDPG & Error States & Continuous & Custom + Real & \textbf{Yes} \\
+\hline
+[13] Wu et al. & Policy-Based & Multi-Critic DDPG & State Vector & Continuous & MATLAB & No \\
+\hline
+[14] Xie et al. & Value-Based & DRQN & POMDP State & Discrete & Unity & No \\
+\hline
+[15] Chen et al. & Non-DRL & V-Diagram & Threat Info & Continuous & Custom & No \\
+\hline
+[16] Cheng et al. & Non-DRL & Info Theoretic & Local Info & Discrete & Custom & No \\
+\hline
+\end{tabular}
+}
+\end{center}
+\end{table*}
+
+\begin{table*}[htbp]
+\caption{Comprehensive Comparison of UAV Navigation Algorithms (Part 2: Performance \& Details)}
+\label{tab:comp_part2}
+\begin{center}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+\textbf{Study} & \textbf{Reward Function Components} & \textbf{Network / Method Details} & \textbf{Learning Rate} & \textbf{Key Metric} & \textbf{Result} \\
+\hline
+[1] Wang et al. & Goal(+), Collision(-), Step(-) & Faster R-CNN + 3-layer DQN & 0.00025 & Success Rate & 94\% \\
+\hline
+[2] Fremond et al. & Conflict(-), Goal(+), Smooth(-) & GRU-based Policy (64 units) & 0.0005 (Est) & Conflict Resolution & 98.5\% \\
+\hline
+[3] Carvalho et al. & Goal(+), Potential(+), Energy(-) & Dueling DQN (Conv Layers) & Dynamic & Success Rate & 91\% (Dense) \\
+\hline
+[4] Xue \& Chen & Progress(+), Safety(-), Valid(+) & Hierarchical (DQN + Gradient) & 0.0001 & Success Rate & 100\% (Static) \\
+\hline
+[5] Yin et al. & Goal, Col, Angular, Velocity & LSTM Actor + Attention & 0.001 & Collision Rate & -40\% vs TD3 \\
+\hline
+[6] Duan et al. & N/A (Cost Function) & Multi-Res Octree & N/A & Compute Time & -60\% \\
+\hline
+[7] Wang et al. & Safety Envelope, Dist Change & DQN + Action Prob & Unknown & Success Rate & 95\% \\
+\hline
+[8] AlMahamid et al. & Goal, Col, Time, Glimpse(-) & Glimpse Net + LSTM (256) & 0.0001 & Success Rate & 92\% \\
+\hline
+[9] Samma et al. & Goal, Col, Shaping & ResNet-18 + Dueling DQN & 0.0001 & Training Steps & -40\% steps \\
+\hline
+[10] Yan et al. & Task(+), Safety Cost & PPO-Lagrangian & 0.0003 & Collision Rate & <2\% \\
+\hline
+[11] Zhao et al. & Dist, Heading, Obstacle(-) & TD3 (400, 300 units) & 0.001 & Success Rate & 93\% \\
+\hline
+[12] Woo et al. & Cross-track, Heading, Action & DDPG (400, 300 units) & 0.0001 & Tracking Error & <0.5m \\
+\hline
+[13] Wu et al. & Distance Reward & Multi-Critic (3 Critics) & Unknown & Convergence & +20\% Speed \\
+\hline
+[14] Xie et al. & FOV Reward, Nav Reward & DRQN (LSTM) & 0.00025 & Success Rate & 88\% \\
+\hline
+[15] Chen et al. & N/A (Heuristic) & Cubic Spline + Crowding & N/A & Reaction Time & <50ms \\
+\hline
+[16] Cheng et al. & Information Gain & Info Utility Maximization & N/A & Coverage & 95\% \\
+\hline
+\end{tabular}
+}
+\end{center}
+\end{table*}

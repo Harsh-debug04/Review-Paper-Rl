@@ -1,0 +1,66 @@
+\section{Hybrid and Non-DRL Approaches}
+
+\subsection{RLPlanNav (Hierarchical DRL + Motion Planner) [4]}
+\subsubsection{Overview}
+Xue and Chen tackle the limitations of end-to-end DRL in long-horizon tasks. Pure RL often fails to find a path to a distant goal in complex environments due to sparse rewards and the difficulty of credit assignment. Classical planners, on the other hand, struggle with dynamic obstacles.
+
+\subsubsection{Methodology}
+RLPlanNav proposes a **Hierarchical Architecture**:
+\begin{enumerate}
+    \item \textbf{High-Level Planner (DRL):} A DQN agent selects intermediate sub-goals (waypoints) within a local window around the UAV. It uses a 2D occupancy grid as input.
+    \item \textbf{Low-Level Planner (Gradient-Based):} The EGO-Planner, a gradient-based trajectory optimizer, generates a smooth, collision-free trajectory from the current position to the sub-goal.
+\end{enumerate}
+This decomposition simplifies the learning problem for the RL agent (which only needs to select feasible sub-goals) and leverages the precision of the classical planner for local control.
+
+\subsubsection{Quantitative Performance}
+In Gazebo simulations with static obstacles, RLPlanNav achieved a **100\%** success rate in densities up to 0.5 obstacles/$m^2$, whereas the standalone EGO-Planner failed (stuck in local minima) in **15\%** of cases. The hybrid approach combines the global exploration capability of RL with the local optimality of gradient-based planning.
+
+\subsubsection{Critique}
+The reliance on a 2D occupancy grid simplifies the problem but limits applicability in full 3D environments. The communication overhead between the high-level and low-level planners can introduce latency.
+
+\subsection{Collaborative Path Planning to Avoid Sudden Threats [15]}
+\subsubsection{Overview}
+Chen et al. address the problem of multi-UAV coordination in the presence of sudden threats. This work highlights the responsiveness of heuristic methods compared to learning-based ones.
+
+\subsubsection{Methodology}
+The approach combines:
+\begin{itemize}
+    \item \textbf{V-Diagram:} A geometric method for initial path generation.
+    \item \textbf{Mission Assignment Model:} Allocates tasks to UAVs based on their capabilities and current positions.
+    \item \textbf{Cubic Spline Smoothing:} Ensures the generated paths are kinematically feasible.
+    \item \textbf{Crowding Mechanism:} A local re-planning strategy triggered when a threat is detected. It adjusts the path locally to maintain separation.
+\end{itemize}
+
+\subsubsection{Quantitative Performance}
+Simulations demonstrated that the swarm could re-plan within **50ms** upon detecting a sudden threat, maintaining safe separation distances. This reaction time is significantly faster than typical DRL inference times, which can range from 100ms to several seconds depending on the network size.
+
+\subsubsection{Critique}
+Heuristic methods are extremely fast and reliable for well-defined scenarios. However, they lack the adaptability of learning-based methods to handle unforeseen situations or complex interactions that were not explicitly programmed.
+
+\subsection{Multi-Level-Frontier Empowered Adaptive Path Planning [6]}
+\subsubsection{Overview}
+Duan et al. focus on efficient exploration of unknown environments. Building a map online is computationally expensive, especially at high resolution.
+
+\subsubsection{Methodology}
+The core contribution is a **Multi-Level Frontier Planner**. Instead of a uniform grid, the environment is represented using an **Octree**, which allows for variable resolution (high resolution near obstacles, low resolution in open space).
+The planner selects frontier points (boundaries between known and unknown space) to guide exploration. A **Historical State Record Tree (HSRT)** is used to backtrack if the agent gets stuck in a dead end.
+
+\subsubsection{Quantitative Performance}
+The multi-resolution approach reduced computational time by **60\%** compared to standard uniform-grid RRT* while maintaining similar path optimality. The memory footprint of the map was also significantly reduced.
+
+\subsubsection{Critique}
+This non-learning approach excels at systematic exploration but does not "learn" from experience. An RL agent could potentially learn to predict the location of frontiers or optimal paths more efficiently over time.
+
+\subsection{Cooperative Control of UAV Swarm via Information Measures [16]}
+\subsubsection{Overview}
+Cheng et al. propose a decentralized control strategy for UAV swarms based on Information Theory. The goal is to maximize the collective information gain (e.g., area covered) without centralized coordination.
+
+\subsubsection{Methodology}
+Each agent calculates the **Information Utility** of potential move directions. The control law maximizes local information gain while minimizing **Mutual Information** (congestion) between neighbors.
+This results in emergent cooperative behavior where agents spread out to cover the area efficiently.
+
+\subsubsection{Quantitative Performance}
+The swarm achieved **95\%** target coverage in search-and-rescue scenarios. The decentralized nature ensures scalability to large numbers of agents without a central bottleneck.
+
+\subsubsection{Critique}
+Information-theoretic approaches are theoretically elegant but can be computationally expensive to evaluate in real-time, especially as the number of neighbors increases. The assumption of perfect communication range is also a limitation.
