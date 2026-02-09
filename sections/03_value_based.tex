@@ -1,0 +1,107 @@
+\section{Value-Based Approaches}
+
+Value-based methods, particularly those derived from Q-Learning, have been foundational in applying DRL to UAV navigation. These approaches discretize the action space (e.g., specific yaw angles or velocity increments) and learn to estimate the long-term return of each action.
+
+\subsection{FRDDM-DQN: Integrating Object Detection with RL [1]}
+\subsubsection{Overview}
+Wang et al. address the challenge of navigating in unknown environments where purely end-to-end learning might fail to extract meaningful features from raw visual inputs quickly. Their proposed framework, FRDDM-DQN, combines a modular perception system with a reinforcement learning decision maker.
+
+\subsubsection{Methodology}
+The architecture consists of two distinct modules:
+\begin{enumerate}
+    \item \textbf{Perception Module:} A Faster R-CNN (Region-based Convolutional Neural Network) is pre-trained to detect obstacles. The bounding box outputs from this network are processed to generate a simplified state representation, reducing the dimensionality burden on the RL agent.
+    \item \textbf{Decision Module:} A Deep Q-Network (DQN) takes the processed visual features and the UAV's current kinematic state (velocity, relative target position) as input. The network comprises three fully connected layers with 512, 256, and 128 neurons, respectively.
+\end{enumerate}
+A key innovation is the \textbf{Data Deposit Mechanism (DDM)}. In standard Experience Replay, memories are sampled uniformly. DDM selectively stores and prioritizes "critical" experiences---specifically those where the UAV is in close proximity to obstacles or the target. This ensures the agent learns safety-critical behaviors more efficiently.
+
+\subsubsection{Quantitative Performance}
+The system was validated in a custom 3D simulation built with OpenGL. The authors report a navigation success rate of \textbf{94\%} in environments with random static obstacles, significantly outperforming a standard DQN baseline (82\%) and a Dueling DQN baseline (86\%). The training convergence speed was improved by approximately 20\% due to the DDM.
+
+\subsubsection{Critique}
+The hybrid approach of separating perception and control is robust but introduces a dependency on the quality of the object detector. If Faster R-CNN misses an obstacle, the RL agent has no recourse. Additionally, the discrete action space limits the smoothness of the flight trajectory.
+
+\subsection{Curriculum-Based Dueling DQN for Urban Environments [3]}
+\subsubsection{Overview}
+Carvalho et al. focus on the difficulty of learning in dense 3D urban environments. Training an agent from scratch in a complex city simulation often leads to failure as the agent rarely encounters positive rewards (reaching the goal) before crashing.
+
+\subsubsection{Methodology}
+To overcome this sparse reward problem, the authors implement \textbf{Curriculum Learning}. The training process is divided into stages of increasing difficulty:
+\begin{itemize}
+    \item \textbf{Stage 1:} Open space with no obstacles.
+    \item \textbf{Stage 2:} Sparse obstacles (low building density).
+    \item \textbf{Stage 3:} Dense urban environment (high building density).
+\end{itemize}
+The algorithm used is \textbf{Dueling DQN}, which decomposes the Q-value into state value $V(s)$ and advantage $A(s,a)$. This helps the agent understand which states are valuable regardless of the action taken (e.g., being far from obstacles is always good). The input is a depth map, processed by a 3-layer CNN (32 filters, 64 filters, 64 filters).
+
+\subsubsection{Quantitative Performance}
+Simulations were conducted in Microsoft AirSim. The curriculum-based approach achieved a success rate of \textbf{91\%} in the densest test scenarios, compared to only 65\% for an agent trained directly on the hard task. Convergence was achieved in 2 million steps, a 30\% reduction in training time.
+
+\subsubsection{Critique}
+Curriculum learning is a powerful technique for RL stability. However, the study does not incorporate temporal information (e.g., using RNNs), which limits the agent's ability to handle dynamic obstacles or estimate velocity from single-frame depth maps.
+
+\subsection{Agile DQN: Attention-Based Visual Navigation [8]}
+\subsubsection{Overview}
+High-resolution visual inputs are computationally expensive to process, which is problematic for UAVs with limited onboard power. AlMahamid et al. propose "Agile DQN" (AG-DQN), which uses visual attention to process only the relevant parts of an image.
+
+\subsubsection{Methodology}
+The AG-DQN architecture integrates three specialized components:
+\begin{enumerate}
+    \item \textbf{Glimpse Network:} A recurrent network that decides "where to look" next. It takes a low-resolution version of the full image and outputs coordinates for a high-resolution "glimpse" patch.
+    \item \textbf{Emission Network:} Extracts features from the selected glimpse.
+    \item \textbf{Q-Network:} Combines the extracted features with an LSTM memory cell (256 units) to make navigation decisions.
+\end{enumerate}
+This attention mechanism mimics human visual processing, allowing the agent to focus high-resolution processing only on obstacles while ignoring open sky or distant background.
+
+\subsubsection{Quantitative Performance}
+Tested in Unity ML-Agents, AG-DQN achieved a \textbf{92\%} success rate in dynamic environments. Crucially, the inference time was reduced by \textbf{20\%} compared to processing the full high-resolution image, and the model size was significantly smaller than standard CNN-based DRQN methods.
+
+\subsubsection{Critique}
+The attention mechanism adds architectural complexity but yields significant efficiency gains. A potential downside is the "saccade latency"---if the agent looks at the wrong place, it might miss a sudden threat.
+
+\subsection{APPA-3D: Dynamic Reward Shaping [7]}
+\subsubsection{Overview}
+Wang et al. propose APPA-3D, focusing on the issue of reward shaping. Standard sparse rewards (only +1 at goal) are insufficient for complex 3D mazes.
+
+\subsubsection{Methodology}
+The core contribution is a \textbf{Dynamic Reward Function} based on a "Collision Safety Envelope."
+\begin{equation}
+R = \alpha (D_{safe} - D_{obs}) + \beta (D_{old} - D_{new})
+\end{equation}
+Instead of a static penalty, the collision penalty scales exponentially as the UAV breaches a safety radius $D_{safe}$. This provides a dense gradient of feedback, guiding the agent away from obstacles long before a collision occurs. The algorithm also uses an optimized exploration strategy where the $\epsilon$-greedy parameter decays based on the success rate of recent episodes rather than a fixed time schedule.
+
+\subsubsection{Quantitative Performance}
+The method reported a \textbf{95\%} success rate in "unknown complex environments" in a custom simulation, outperforming standard Q-Learning (88\%). The path smoothness was also improved due to the continuous feedback from the safety envelope.
+
+\subsubsection{Critique}
+Dynamic reward shaping is effective but requires careful tuning of the hyperparameters $\alpha$ and $\beta$. If $\alpha$ is too large, the agent becomes too timid; if too small, it crashes. The reliance on a custom simulator limits the verification of physics realism.
+
+\subsection{UAV Path Planning in Large-Scale Environments (DRQN) [14]}
+\subsubsection{Overview}
+Xue et al. tackle the problem of navigation in large-scale environments where the goal is far away, and obstacles may occlude the target or trap the agent (the "box canyon" problem).
+
+\subsubsection{Methodology}
+The authors employ a **Deep Recurrent Q-Network (DRQN)**. An LSTM layer is inserted between the convolutional feature extractor and the fully connected decision layers. This memory allows the agent to retain information about obstacles it has recently passed, helping it to avoid looping behavior.
+Additionally, an **Adaptive Experience Replay** mechanism is used. The sampling probability of a transition is weighted by the frequency of failure in that region of the state space, forcing the agent to practice difficult scenarios more often.
+
+\subsubsection{Quantitative Performance}
+In Unity simulations of a $1km \times 1km$ city, the success rate improved from 70\% (standard DQN) to \textbf{88\%} (DRQN with Adaptive Replay). The agent demonstrated the ability to escape local minima that trapped memory-less agents.
+
+\subsubsection{Critique}
+The use of LSTM effectively addresses partial observability. However, training on such large-scale maps is extremely time-consuming, and the discrete action space can lead to "jerky" flight paths over long distances.
+
+\subsection{Improved DQN with Self-Supervised Learning [9]}
+\subsubsection{Overview}
+Samma et al. propose a method to improve the sample efficiency of DRL. Learning visual features solely from the RL reward signal is slow and inefficient.
+
+\subsubsection{Methodology}
+The approach uses a **Two-Stage Learning** process:
+\begin{enumerate}
+    \item \textbf{Self-Supervised Pre-training:} The backbone CNN (ResNet-18) is trained on a pretext task---predicting the next video frame given the current frame and an action. This forces the network to learn the dynamics of the environment and the visual structure of obstacles without needing any manual labeling or reward signals.
+    \item \textbf{RL Fine-tuning:} The pre-trained weights are transferred to a Dueling DQN agent, which is then trained to maximize the navigation reward.
+\end{enumerate}
+
+\subsubsection{Quantitative Performance}
+Experiments in AirSim showed that the pre-training strategy reduced the number of RL interactions needed to reach a 90\% success rate by \textbf{40\%}. The final policy was also more robust to lighting changes, as the self-supervised task encouraged learning invariance.
+
+\subsubsection{Critique}
+This is a highly promising direction. Decoupling representation learning from policy learning addresses one of the biggest bottlenecks in DRL. The computational cost of the pre-training phase is offset by the massive reduction in online interaction time.

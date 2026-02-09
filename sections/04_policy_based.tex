@@ -1,0 +1,106 @@
+\section{Policy-Based and Actor-Critic Approaches}
+
+Policy-based methods, particularly Actor-Critic architectures, dominate current research for UAV navigation in continuous spaces. By directly optimizing the policy $\pi(a|s)$, these methods can generate smooth, continuous control signals (e.g., specific thrust values) essential for agile flight.
+
+\subsection{Adaptive Multi-Agent PPO (MAPPO) [2]}
+\subsubsection{Overview}
+Fremond et al. tackle the complex problem of tactical conflict resolution in a shared airspace. With multiple UAVs operating simultaneously, the environment becomes non-stationary from the perspective of a single agent, as other agents are also learning and adapting.
+
+\subsubsection{Methodology}
+The authors employ a **Multi-Agent PPO (MAPPO)** framework with Centralized Training and Decentralized Execution (CTDE).
+\begin{enumerate}
+    \item \textbf{Centralized Training:} During training, the Critic network has access to the full state of all agents (positions, velocities, intents). This stabilizes the value function learning.
+    \item \textbf{Decentralized Execution:} During deployment, each Actor only receives its local observation (relative position of neighbors) and makes independent decisions.
+\end{enumerate}
+A **Recurrent Neural Network (GRU)** layer with 64 units is included in the policy network to handle the partial observability of other agents' intentions.
+
+\subsubsection{Reward Formulation}
+The reward function is designed to balance safety and efficiency:
+\begin{equation}
+R = w_c R_{conflict} + w_g R_{goal} + w_s R_{smooth}
+\end{equation}
+where $R_{conflict}$ imposes a severe penalty for loss of separation, $R_{goal}$ rewards progress towards the destination, and $R_{smooth}$ penalizes abrupt changes in heading or velocity to ensure flyable trajectories.
+
+\subsubsection{Quantitative Performance}
+In a custom Urban Airspace Simulator with up to 10 concurrent UAVs, the MAPPO approach resolved **98.5\%** of tactical conflicts. It reduced the number of unresolvable encounters by **45\%** compared to traditional geometrical avoidance rules (ORCA).
+
+\subsubsection{Critique}
+The centralized training assumption limits scalability to very large numbers of agents. Additionally, the communication overhead for sharing observations during training can be significant.
+
+\subsection{Guide Attention TD3 (GARTD3) [5]}
+\subsubsection{Overview}
+Yin et al. address the challenge of navigating in cluttered 3D environments using LiDAR data. Raw LiDAR scans are high-dimensional and noisy. The authors propose GARTD3, an enhancement of the Twin Delayed DDPG algorithm.
+
+\subsubsection{Methodology}
+The key innovation is the **Guide Attention Mechanism**. An attention layer weighs the importance of different laser beams based on their distance and angle relative to the UAV's velocity vector. This allows the network to focus on obstacles directly in the flight path while ignoring peripheral clutter.
+The Actor network also includes an **LSTM** layer (128 units) to process sequential laser scans, capturing the temporal dynamics of moving obstacles.
+
+\subsubsection{Reward Formulation}
+The reward function includes specific terms for angular velocity $r_{ang}$ and linear velocity $r_{vel}$ to ensure smooth flight:
+\begin{equation}
+r = r_{goal} + r_{col} + r_{ang} + r_{vel}
+\end{equation}
+
+\subsubsection{Quantitative Performance}
+Tested in Gazebo simulations of narrow corridors, GARTD3 showed a **15\%** improvement in average velocity and a **40\%** reduction in collision rate compared to standard TD3. The attention mechanism correctly identified critical obstacles even in noisy sensor data.
+
+\subsubsection{Critique}
+The addition of attention and LSTM layers increases the computational complexity of the forward pass, potentially affecting real-time performance on embedded hardware.
+
+\subsection{TD3 for Local Path Planning [11]}
+\subsubsection{Overview}
+Zhao et al. focus on local obstacle avoidance using the TD3 algorithm. The goal is to verify the stability and sample efficiency of TD3 compared to DDPG in a standard UAV navigation task.
+
+\subsubsection{Methodology}
+The agent uses a standard **TD3** architecture. The Actor and Critic networks are multi-layer perceptrons (MLP) with 3 fully connected layers (400, 300 units). The input consists of 24 laser range readings and the relative coordinates of the target.
+To address the overestimation bias of DDPG, TD3 employs **Clipped Double Q-Learning**, taking the minimum value from two critic networks.
+
+\subsubsection{Quantitative Performance}
+In Gazebo simulations with static cylindrical obstacles, the TD3 agent achieved a **93\%** success rate. In obstacle-free environments, it reached 92\%. The training converged significantly faster and with less variance than DDPG.
+
+\subsubsection{Critique}
+While effective for local planning, the study relies on a relatively simple sensor model (24 rays) which may not capture complex 3D structures. The lack of a global planner integration limits its applicability to long-range missions.
+
+\subsection{Safety-Aware PPO (SIGN) [10]}
+\subsubsection{Overview}
+Yan et al. propose SIGN, a safety-aware navigation system. Standard RL treats safety as a negative reward, which often leads to "reward hacking" or unsafe exploration. SIGN explicitly models safety constraints.
+
+\subsubsection{Methodology}
+The method uses **Constrained Policy Optimization** via a Lagrangian relaxation. The network outputs both a policy $\pi(a|s)$ and a safety value $V_{safe}(s)$, which estimates the probability of constraint violation in the future.
+The optimization objective maximizes the expected return subject to the constraint that the expected safety cost is below a threshold $d_{thresh}$.
+
+\subsubsection{Quantitative Performance}
+Trained in the photorealistic Gibson/Habitat simulator, SIGN reduced the collision rate to **<2\%** in cluttered indoor environments, significantly lower than unconstrained PPO (approx. 15\%). The success rate remained comparable (approx. 85\%).
+
+\subsubsection{Critique}
+This is a critical advancement for real-world deployment. However, constrained optimization is computationally more expensive and sensitive to hyperparameter tuning (Lagrange multipliers).
+
+\subsection{Real-World DDPG for USV Path Following [12]}
+\subsubsection{Overview}
+Woo et al. present a rare example of real-world validation, albeit for an Unmanned Surface Vehicle (USV). The challenges of continuous control and dynamics modeling are similar to UAVs.
+
+\subsubsection{Methodology}
+The authors use **DDPG** to learn a path-following controller. The state space includes cross-track error and heading error relative to the desired path. The action space controls the rudder angle and propeller speed.
+To prevent mechanical wear on the actuators, the reward function includes a penalty term for rapid changes in control inputs:
+\begin{equation}
+R = -(k_1 |error_{cross}| + k_2 |error_{heading}| + k_3 |action_{change}|)
+\end{equation}
+
+\subsubsection{Quantitative Performance}
+After training in a custom marine simulator, the policy was transferred to a physical 1.2m USV. In lake tests, the USV successfully followed a square path with an average cross-track error of **<0.5m**, demonstrating successful sim-to-real transfer.
+
+\subsubsection{Critique}
+The success of this study highlights the importance of incorporating actuator constraints into the reward function. The "sim-to-real" gap was bridged by accurate system identification of the vehicle dynamics.
+
+\subsection{Multi-Critic DDPG [13]}
+\subsubsection{Overview}
+Wu et al. extend the idea of double Q-learning to multiple critics. Standard DDPG can suffer from severe overestimation of Q-values, leading to suboptimal policies.
+
+\subsubsection{Methodology}
+The proposed **Multi-Critic DDPG** uses an Actor network and **three** independent Critic networks. During the policy update, the minimum Q-value among the three critics is used to calculate the target value. This further reduces the bias compared to the two critics in TD3.
+
+\subsubsection{Quantitative Performance}
+Experiments in a MATLAB-based simulation showed that the Multi-Critic approach converged **20\%** faster than standard DDPG and exhibited much lower variance in the learning curve.
+
+\subsubsection{Critique}
+While mathematically sound, maintaining three critic networks increases the memory footprint and training time. The marginal gain over two critics (TD3) may not justify the cost in resource-constrained scenarios.

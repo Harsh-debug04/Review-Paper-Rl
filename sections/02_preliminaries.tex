@@ -1,0 +1,64 @@
+\section{Preliminaries}
+
+\subsection{Reinforcement Learning Fundamentals}
+Reinforcement Learning (RL) is a computational approach to learning from interaction. An RL agent interacts with an environment modeled as a Markov Decision Process (MDP), defined by the tuple $(\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)$, where:
+\begin{itemize}
+    \item $\mathcal{S}$ is the state space (e.g., UAV position, velocity, sensor readings).
+    \item $\mathcal{A}$ is the action space (e.g., motor commands, velocity setpoints).
+    \item $\mathcal{P}: \mathcal{S} \times \mathcal{A} \times \mathcal{S} \rightarrow [0, 1]$ is the state transition probability function, describing the dynamics of the environment.
+    \item $\mathcal{R}: \mathcal{S} \times \mathcal{A} \rightarrow \mathbb{R}$ is the reward function, providing feedback on the quality of actions.
+    \item $\gamma \in [0, 1]$ is the discount factor, balancing immediate and future rewards.
+\end{itemize}
+
+The goal of the agent is to learn a policy $\pi: \mathcal{S} \rightarrow \mathcal{A}$ (deterministic) or $\pi(a|s)$ (stochastic) that maximizes the expected cumulative discounted reward, or return $G_t$:
+\begin{equation}
+G_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k+1}
+\end{equation}
+
+\subsection{Value-Based Methods}
+Value-based methods aim to learn the value function $V^\pi(s)$ or the action-value function $Q^\pi(s, a)$, which estimates the expected return starting from state $s$ (and taking action $a$) and following policy $\pi$ thereafter. The optimal action-value function $Q^*(s, a)$ satisfies the Bellman Optimality Equation:
+\begin{equation}
+Q^*(s, a) = \mathbb{E}_{s' \sim \mathcal{P}}[r + \gamma \max_{a'} Q^*(s', a')]
+\end{equation}
+
+\subsubsection{Deep Q-Networks (DQN)}
+DQN approximates the Q-function using a deep neural network with weights $\theta$, i.e., $Q(s, a; \theta) \approx Q^*(s, a)$. To stabilize training, DQN introduces two key mechanisms:
+\begin{itemize}
+    \item \textbf{Experience Replay:} Transitions $(s_t, a_t, r_t, s_{t+1})$ are stored in a replay buffer $\mathcal{D}$. Mini-batches are sampled uniformly during training to break temporal correlations between consecutive samples.
+    \item \textbf{Target Network:} A separate network with weights $\theta^-$ is used to compute the target values. The weights $\theta^-$ are updated periodically to match $\theta$, preventing divergence.
+\end{itemize}
+The loss function for DQN is:
+\begin{equation}
+L(\theta) = \mathbb{E}_{(s, a, r, s') \sim \mathcal{D}} [(r + \gamma \max_{a'} Q(s', a'; \theta^-) - Q(s, a; \theta))^2]
+\end{equation}
+
+\subsection{Policy-Based and Actor-Critic Methods}
+Policy-based methods directly parameterize the policy $\pi_\theta(a|s)$ and optimize it via gradient ascent on the expected return $J(\pi_\theta) = \mathbb{E}[G_t]$. The Policy Gradient Theorem states:
+\begin{equation}
+\nabla_\theta J(\pi_\theta) = \mathbb{E}_{\pi_\theta} [\nabla_\theta \log \pi_\theta(a|s) Q^\pi(s, a)]
+\end{equation}
+Actor-Critic methods combine value-based and policy-based approaches. The "Actor" updates the policy parameters $\theta$, while the "Critic" learns the value function (e.g., $Q_w(s, a)$) to reduce the variance of the policy gradient estimate.
+
+\subsubsection{Deep Deterministic Policy Gradient (DDPG)}
+DDPG is an actor-critic algorithm adapted for continuous action spaces. It uses a deterministic policy $\mu_\theta(s)$ and updates the critic by minimizing the Bellman error. The actor is updated by following the deterministic policy gradient:
+\begin{equation}
+\nabla_\theta J(\mu_\theta) \approx \mathbb{E}_{s \sim \mathcal{D}} [\nabla_\theta \mu_\theta(s) \nabla_a Q(s, a; w)|_{a=\mu_\theta(s)}]
+\end{equation}
+
+\subsubsection{Twin Delayed DDPG (TD3)}
+TD3 addresses the overestimation bias inherent in DDPG by introducing:
+\begin{enumerate}
+    \item \textbf{Clipped Double Q-Learning:} Two critic networks are used, and the minimum Q-value is taken for the target calculation.
+    \item \textbf{Delayed Policy Updates:} The actor is updated less frequently than the critic to allow value estimates to stabilize.
+    \item \textbf{Target Policy Smoothing:} Noise is added to the target action to enforce smoothness in the value function.
+\end{enumerate}
+
+\subsubsection{Proximal Policy Optimization (PPO)}
+PPO is a policy gradient method that improves stability by constraining the policy update step size. It optimizes a surrogate objective function using a "clipped" probability ratio to prevent large policy deviations:
+\begin{equation}
+L^{CLIP}(\theta) = \mathbb{E}_t [\min(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t)]
+\end{equation}
+where $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$ is the probability ratio and $\hat{A}_t$ is the advantage estimate.
+
+\subsection{Partially Observable MDPs (POMDPs)}
+In real-world scenarios, UAVs often have incomplete information about the environment (e.g., limited sensor range, occlusions). This is modeled as a POMDP, where the agent receives observations $o \in \Omega$ that are probabilistically related to the underlying state $s$. To handle partial observability, DRL agents often employ Recurrent Neural Networks (RNNs) or Long Short-Term Memory (LSTM) networks to aggregate historical observations into a hidden state $h_t$ that serves as a proxy for the true state $s_t$.

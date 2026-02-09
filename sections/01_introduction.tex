@@ -1,0 +1,26 @@
+\section{Introduction}
+
+\subsection{Background and Motivation}
+Unmanned Aerial Vehicles (UAVs), commonly known as drones, have revolutionized industries ranging from agriculture and surveillance to disaster response and logistics. Their ability to access hard-to-reach areas, hover in place, and perform rapid maneuvers makes them indispensable tools in modern society. However, the widespread adoption of UAVs is heavily contingent upon their ability to navigate autonomously in complex, dynamic, and often unknown environments. Traditional navigation systems rely heavily on Global Positioning System (GPS) signals and pre-generated maps, which are prone to failure in GPS-denied environments (e.g., indoor spaces, urban canyons, dense forests) or under electronic jamming conditions. Furthermore, classical path planning algorithms such as A*, Dijkstra, and Rapidly-exploring Random Trees (RRT) struggle with high-dimensional state spaces and dynamic obstacles, often requiring computationally expensive re-planning that is infeasible on resource-constrained onboard hardware.
+
+To address these limitations, researchers have turned to Deep Reinforcement Learning (DRL), a subfield of machine learning that combines the perceptual capabilities of Deep Neural Networks (DNNs) with the decision-making framework of Reinforcement Learning (RL). DRL enables UAVs to learn optimal navigation policies directly from raw sensor inputs (e.g., RGB images, depth maps, LiDAR point clouds) through trial-and-error interactions with the environment. By formulating the navigation problem as a Markov Decision Process (MDP) or Partially Observable Markov Decision Process (POMDP), DRL agents can learn to map high-dimensional observations to precise control actions (e.g., thrust, yaw, pitch, roll) in real-time, even in the presence of dynamic obstacles and changing environmental conditions.
+
+\subsection{Evolution of Navigation Strategies}
+The evolution of UAV navigation can be broadly categorized into three phases:
+\begin{enumerate}
+    \item \textbf{Classical Geometric Methods:} These include potential field methods, graph search algorithms (A*, D*), and sampling-based planners (RRT, RRT*). While theoretically sound in static environments, they often suffer from local minima (e.g., getting stuck in U-shaped obstacles) and high computational complexity in dynamic scenarios.
+    \item \textbf{Optimization-Based Control:} Techniques like Model Predictive Control (MPC) formulate navigation as a constrained optimization problem over a finite time horizon. While effective for trajectory tracking, they require accurate dynamic models and can be computationally intensive for real-time collision avoidance in cluttered environments.
+    \item \textbf{Learning-Based Approaches:} The advent of DRL has shifted the paradigm towards end-to-end learning. Early works utilized value-based methods like Deep Q-Networks (DQN) for discrete action spaces. More recent advancements leverage policy gradient methods (DDPG, TD3, PPO) for continuous control, enabling smoother and more agile flight maneuvers. Hybrid approaches that combine DRL with classical planners or supervised learning are also gaining traction to improve safety and sample efficiency.
+\end{enumerate}
+
+\subsection{Scope and Objectives}
+This review provides a comprehensive analysis of sixteen state-of-the-art studies on DRL-based and hybrid UAV navigation systems. We go beyond high-level summaries to dissect the specific architectural choices, reward function designs, training methodologies, and experimental results of each work. Our goal is to provide a detailed roadmap for researchers and practitioners looking to implement or improve upon existing DRL navigation strategies. The review covers:
+\begin{itemize}
+    \item \textbf{Value-Based Methods:} Focus on learning optimal state-action value functions (Q-learning variants).
+    \item \textbf{Policy-Based/Actor-Critic Methods:} Focus on learning optimal policies directly, suitable for continuous action spaces.
+    \item \textbf{Hybrid Architectures:} Combining DRL with classical planners or auxiliary tasks.
+    \item \textbf{Non-DRL Benchmarks:} Heuristic and information-theoretic approaches for comparative context.
+\end{itemize}
+
+\subsection{Structure of the Review}
+The remainder of this paper is organized as follows: Section II provides the necessary mathematical preliminaries on RL and DRL algorithms. Section III details the methodology used for selecting and analyzing the papers. Section IV presents an in-depth review of Value-Based approaches. Section V covers Policy-Based and Actor-Critic methods. Section VI discusses Hybrid and Non-DRL approaches. Section VII offers a comparative analysis and discussion of key trends. Section VIII outlines critical challenges and future research directions, and Section IX concludes the paper.
