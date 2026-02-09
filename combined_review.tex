@@ -1,3 +1,4 @@
+
 \documentclass[conference]{IEEEtran}
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
@@ -17,21 +18,21 @@
 \title{Comprehensive Review of Deep Reinforcement Learning Strategies for UAV Navigation and Conflict Resolution: A 16-Study Analysis}
 
 \author{\IEEEauthorblockN{Harshvardhan Pandey}
-\IEEEauthorblockA{\textit{Dept. of Artificial Intelligence and Machine Learning} \\
-\textit{Manipal University Jaipur}\\
-Jaipur, India \\
+\IEEEauthorblockA{\textit{Dept. of Artificial Intelligence and Machine Learning} \
+\textit{Manipal University Jaipur}\
+Jaipur, India \
 harshpandey145@gmail.com}
 \and
 \IEEEauthorblockN{Adya Chauhan}
-\IEEEauthorblockA{\textit{Dept. of Artificial Intelligence and Machine Learning} \\
-\textit{Manipal University Jaipur}\\
-Jaipur, India \\
+\IEEEauthorblockA{\textit{Dept. of Artificial Intelligence and Machine Learning} \
+\textit{Manipal University Jaipur}\
+Jaipur, India \
 adyachauhan.04@gmail.com}
 \and
 \IEEEauthorblockN{Yash Prasad}
-\IEEEauthorblockA{\textit{Dept. of Artificial Intelligence and Machine Learning} \\
-\textit{Manipal University Jaipur}\\
-Jaipur, India \\
+\IEEEauthorblockA{\textit{Dept. of Artificial Intelligence and Machine Learning} \
+\textit{Manipal University Jaipur}\
+Jaipur, India \
 eyash.prasad24@gmail.com}
 }
 
@@ -45,13 +46,578 @@ The autonomous navigation of Unmanned Aerial Vehicles (UAVs) in complex, dynamic
 Unmanned Aerial Vehicles (UAV), Deep Reinforcement Learning (DRL), Path Planning, Obstacle Avoidance, Neural Networks, Autonomous Navigation
 \end{IEEEkeywords}
 
-\input{sections/01_introduction.tex}
-\input{sections/02_preliminaries.tex}
-\input{sections/03_value_based.tex}
-\input{sections/04_policy_based.tex}
-\input{sections/05_hybrid_non_drl.tex}
-\input{sections/06_comparative_analysis.tex}
-\input{sections/07_challenges_future.tex}
+\section{Introduction}
+
+\subsection{Background and Motivation}
+Unmanned Aerial Vehicles (UAVs), commonly known as drones, have revolutionized industries ranging from agriculture and surveillance to disaster response and logistics. Their ability to access hard-to-reach areas, hover in place, and perform rapid maneuvers makes them indispensable tools in modern society. However, the widespread adoption of UAVs is heavily contingent upon their ability to navigate autonomously in complex, dynamic, and often unknown environments. Traditional navigation systems rely heavily on Global Positioning System (GPS) signals and pre-generated maps, which are prone to failure in GPS-denied environments (e.g., indoor spaces, urban canyons, dense forests) or under electronic jamming conditions. Furthermore, classical path planning algorithms such as A*, Dijkstra, and Rapidly-exploring Random Trees (RRT) struggle with high-dimensional state spaces and dynamic obstacles, often requiring computationally expensive re-planning that is infeasible on resource-constrained onboard hardware.
+
+To address these limitations, researchers have turned to Deep Reinforcement Learning (DRL), a subfield of machine learning that combines the perceptual capabilities of Deep Neural Networks (DNNs) with the decision-making framework of Reinforcement Learning (RL). DRL enables UAVs to learn optimal navigation policies directly from raw sensor inputs (e.g., RGB images, depth maps, LiDAR point clouds) through trial-and-error interactions with the environment. By formulating the navigation problem as a Markov Decision Process (MDP) or Partially Observable Markov Decision Process (POMDP), DRL agents can learn to map high-dimensional observations to precise control actions (e.g., thrust, yaw, pitch, roll) in real-time, even in the presence of dynamic obstacles and changing environmental conditions.
+
+\subsection{Evolution of Navigation Strategies}
+The evolution of UAV navigation can be broadly categorized into three phases:
+\begin{enumerate}
+    \item \textbf{Classical Geometric Methods:} These include potential field methods, graph search algorithms (A*, D*), and sampling-based planners (RRT, RRT*). While theoretically sound in static environments, they often suffer from local minima (e.g., getting stuck in U-shaped obstacles) and high computational complexity in dynamic scenarios.
+    \item \textbf{Optimization-Based Control:} Techniques like Model Predictive Control (MPC) formulate navigation as a constrained optimization problem over a finite time horizon. While effective for trajectory tracking, they require accurate dynamic models and can be computationally intensive for real-time collision avoidance in cluttered environments.
+    \item \textbf{Learning-Based Approaches:} The advent of DRL has shifted the paradigm towards end-to-end learning. Early works utilized value-based methods like Deep Q-Networks (DQN) for discrete action spaces. More recent advancements leverage policy gradient methods (DDPG, TD3, PPO) for continuous control, enabling smoother and more agile flight maneuvers. Hybrid approaches that combine DRL with classical planners or supervised learning are also gaining traction to improve safety and sample efficiency.
+\end{enumerate}
+
+\subsection{Scope and Objectives}
+This review provides a comprehensive analysis of sixteen state-of-the-art studies on DRL-based and hybrid UAV navigation systems. We go beyond high-level summaries to dissect the specific architectural choices, reward function designs, training methodologies, and experimental results of each work. Our goal is to provide a detailed roadmap for researchers and practitioners looking to implement or improve upon existing DRL navigation strategies. The review covers:
+\begin{itemize}
+    \item \textbf{Value-Based Methods:} Focus on learning optimal state-action value functions (Q-learning variants).
+    \item \textbf{Policy-Based/Actor-Critic Methods:} Focus on learning optimal policies directly, suitable for continuous action spaces.
+    \item \textbf{Hybrid Architectures:} Combining DRL with classical planners or auxiliary tasks.
+    \item \textbf{Non-DRL Benchmarks:} Heuristic and information-theoretic approaches for comparative context.
+\end{itemize}
+
+\subsection{Structure of the Review}
+The remainder of this paper is organized as follows: Section II provides the necessary mathematical preliminaries on RL and DRL algorithms. Section III details the methodology used for selecting and analyzing the papers. Section IV presents an in-depth review of Value-Based approaches. Section V covers Policy-Based and Actor-Critic methods. Section VI discusses Hybrid and Non-DRL approaches. Section VII offers a comparative analysis and discussion of key trends. Section VIII outlines critical challenges and future research directions, and Section IX concludes the paper.
+
+
+
+\section{Preliminaries}
+
+\subsection{Reinforcement Learning Fundamentals}
+Reinforcement Learning (RL) is a computational approach to learning from interaction. An RL agent interacts with an environment modeled as a Markov Decision Process (MDP), defined by the tuple $(\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)$, where:
+\begin{itemize}
+    \item $\mathcal{S}$ is the state space (e.g., UAV position, velocity, sensor readings).
+    \item $\mathcal{A}$ is the action space (e.g., motor commands, velocity setpoints).
+    \item $\mathcal{P}: \mathcal{S} \times \mathcal{A} \times \mathcal{S} \rightarrow [0, 1]$ is the state transition probability function, describing the dynamics of the environment.
+    \item $\mathcal{R}: \mathcal{S} \times \mathcal{A} \rightarrow \mathbb{R}$ is the reward function, providing feedback on the quality of actions.
+    \item $\gamma \in [0, 1]$ is the discount factor, balancing immediate and future rewards.
+\end{itemize}
+
+The goal of the agent is to learn a policy $\pi: \mathcal{S} \rightarrow \mathcal{A}$ (deterministic) or $\pi(a|s)$ (stochastic) that maximizes the expected cumulative discounted reward, or return $G_t$:
+\begin{equation}
+G_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k+1}
+\end{equation}
+
+\subsection{Value-Based Methods}
+Value-based methods aim to learn the value function $V^\pi(s)$ or the action-value function $Q^\pi(s, a)$, which estimates the expected return starting from state $s$ (and taking action $a$) and following policy $\pi$ thereafter. The optimal action-value function $Q^*(s, a)$ satisfies the Bellman Optimality Equation:
+\begin{equation}
+Q^*(s, a) = \mathbb{E}_{s' \sim \mathcal{P}}[r + \gamma \max_{a'} Q^*(s', a')]
+\end{equation}
+
+\subsubsection{Deep Q-Networks (DQN)}
+DQN approximates the Q-function using a deep neural network with weights $\theta$, i.e., $Q(s, a; \theta) \approx Q^*(s, a)$. To stabilize training, DQN introduces two key mechanisms:
+\begin{itemize}
+    \item \textbf{Experience Replay:} Transitions $(s_t, a_t, r_t, s_{t+1})$ are stored in a replay buffer $\mathcal{D}$. Mini-batches are sampled uniformly during training to break temporal correlations between consecutive samples.
+    \item \textbf{Target Network:} A separate network with weights $\theta^-$ is used to compute the target values. The weights $\theta^-$ are updated periodically to match $\theta$, preventing divergence.
+\end{itemize}
+The loss function for DQN is:
+\begin{equation}
+L(\theta) = \mathbb{E}_{(s, a, r, s') \sim \mathcal{D}} [(r + \gamma \max_{a'} Q(s', a'; \theta^-) - Q(s, a; \theta))^2]
+\end{equation}
+
+\subsection{Policy-Based and Actor-Critic Methods}
+Policy-based methods directly parameterize the policy $\pi_\theta(a|s)$ and optimize it via gradient ascent on the expected return $J(\pi_\theta) = \mathbb{E}[G_t]$. The Policy Gradient Theorem states:
+\begin{equation}
+\nabla_\theta J(\pi_\theta) = \mathbb{E}_{\pi_\theta} [\nabla_\theta \log \pi_\theta(a|s) Q^\pi(s, a)]
+\end{equation}
+Actor-Critic methods combine value-based and policy-based approaches. The "Actor" updates the policy parameters $\theta$, while the "Critic" learns the value function (e.g., $Q_w(s, a)$) to reduce the variance of the policy gradient estimate.
+
+\subsubsection{Deep Deterministic Policy Gradient (DDPG)}
+DDPG is an actor-critic algorithm adapted for continuous action spaces. It uses a deterministic policy $\mu_\theta(s)$ and updates the critic by minimizing the Bellman error. The actor is updated by following the deterministic policy gradient:
+\begin{equation}
+\nabla_\theta J(\mu_\theta) \approx \mathbb{E}_{s \sim \mathcal{D}} [\nabla_\theta \mu_\theta(s) \nabla_a Q(s, a; w)|_{a=\mu_\theta(s)}]
+\end{equation}
+
+\subsubsection{Twin Delayed DDPG (TD3)}
+TD3 addresses the overestimation bias inherent in DDPG by introducing:
+\begin{enumerate}
+    \item \textbf{Clipped Double Q-Learning:} Two critic networks are used, and the minimum Q-value is taken for the target calculation.
+    \item \textbf{Delayed Policy Updates:} The actor is updated less frequently than the critic to allow value estimates to stabilize.
+    \item \textbf{Target Policy Smoothing:} Noise is added to the target action to enforce smoothness in the value function.
+\end{enumerate}
+
+\subsubsection{Proximal Policy Optimization (PPO)}
+PPO is a policy gradient method that improves stability by constraining the policy update step size. It optimizes a surrogate objective function using a "clipped" probability ratio to prevent large policy deviations:
+\begin{equation}
+L^{CLIP}(\theta) = \mathbb{E}_t [\min(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t)]
+\end{equation}
+where $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$ is the probability ratio and $\hat{A}_t$ is the advantage estimate.
+
+\subsection{Partially Observable MDPs (POMDPs)}
+In real-world scenarios, UAVs often have incomplete information about the environment (e.g., limited sensor range, occlusions). This is modeled as a POMDP, where the agent receives observations $o \in \Omega$ that are probabilistically related to the underlying state $s$. To handle partial observability, DRL agents often employ Recurrent Neural Networks (RNNs) or Long Short-Term Memory (LSTM) networks to aggregate historical observations into a hidden state $h_t$ that serves as a proxy for the true state $s_t$.
+
+
+
+\section{Value-Based Approaches}
+
+Value-based methods, particularly those derived from Q-Learning, have been foundational in applying DRL to UAV navigation. These approaches discretize the action space (e.g., specific yaw angles or velocity increments) and learn to estimate the long-term return of each action.
+
+\subsection{FRDDM-DQN: Integrating Object Detection with RL [1]}
+\subsubsection{Overview}
+Wang et al. address the challenge of navigating in unknown environments where purely end-to-end learning might fail to extract meaningful features from raw visual inputs quickly. Their proposed framework, FRDDM-DQN, combines a modular perception system with a reinforcement learning decision maker.
+
+\subsubsection{Methodology}
+The architecture consists of two distinct modules:
+\begin{enumerate}
+    \item \textbf{Perception Module:} A Faster R-CNN (Region-based Convolutional Neural Network) is pre-trained to detect obstacles. The bounding box outputs from this network are processed to generate a simplified state representation, reducing the dimensionality burden on the RL agent.
+    \item \textbf{Decision Module:} A Deep Q-Network (DQN) takes the processed visual features and the UAV's current kinematic state (velocity, relative target position) as input. The network comprises three fully connected layers with 512, 256, and 128 neurons, respectively.
+\end{enumerate}
+A key innovation is the \textbf{Data Deposit Mechanism (DDM)}. In standard Experience Replay, memories are sampled uniformly. DDM selectively stores and prioritizes "critical" experiences---specifically those where the UAV is in close proximity to obstacles or the target. This ensures the agent learns safety-critical behaviors more efficiently.
+
+\subsubsection{Quantitative Performance}
+The system was validated in a custom 3D simulation built with OpenGL. The authors report a navigation success rate of \textbf{94\%} in environments with random static obstacles, significantly outperforming a standard DQN baseline (82\%) and a Dueling DQN baseline (86\%). The training convergence speed was improved by approximately 20\% due to the DDM.
+
+\subsubsection{Critique}
+The hybrid approach of separating perception and control is robust but introduces a dependency on the quality of the object detector. If Faster R-CNN misses an obstacle, the RL agent has no recourse. Additionally, the discrete action space limits the smoothness of the flight trajectory.
+
+\subsection{Curriculum-Based Dueling DQN for Urban Environments [3]}
+\subsubsection{Overview}
+Carvalho et al. focus on the difficulty of learning in dense 3D urban environments. Training an agent from scratch in a complex city simulation often leads to failure as the agent rarely encounters positive rewards (reaching the goal) before crashing.
+
+\subsubsection{Methodology}
+To overcome this sparse reward problem, the authors implement \textbf{Curriculum Learning}. The training process is divided into stages of increasing difficulty:
+\begin{itemize}
+    \item \textbf{Stage 1:} Open space with no obstacles.
+    \item \textbf{Stage 2:} Sparse obstacles (low building density).
+    \item \textbf{Stage 3:} Dense urban environment (high building density).
+\end{itemize}
+The algorithm used is \textbf{Dueling DQN}, which decomposes the Q-value into state value $V(s)$ and advantage $A(s,a)$. This helps the agent understand which states are valuable regardless of the action taken (e.g., being far from obstacles is always good). The input is a depth map, processed by a 3-layer CNN (32 filters, 64 filters, 64 filters).
+
+\subsubsection{Quantitative Performance}
+Simulations were conducted in Microsoft AirSim. The curriculum-based approach achieved a success rate of \textbf{91\%} in the densest test scenarios, compared to only 65\% for an agent trained directly on the hard task. Convergence was achieved in 2 million steps, a 30\% reduction in training time.
+
+\subsubsection{Critique}
+Curriculum learning is a powerful technique for RL stability. However, the study does not incorporate temporal information (e.g., using RNNs), which limits the agent's ability to handle dynamic obstacles or estimate velocity from single-frame depth maps.
+
+\subsection{Agile DQN: Attention-Based Visual Navigation [8]}
+\subsubsection{Overview}
+High-resolution visual inputs are computationally expensive to process, which is problematic for UAVs with limited onboard power. AlMahamid et al. propose "Agile DQN" (AG-DQN), which uses visual attention to process only the relevant parts of an image.
+
+\subsubsection{Methodology}
+The AG-DQN architecture integrates three specialized components:
+\begin{enumerate}
+    \item \textbf{Glimpse Network:} A recurrent network that decides "where to look" next. It takes a low-resolution version of the full image and outputs coordinates for a high-resolution "glimpse" patch.
+    \item \textbf{Emission Network:} Extracts features from the selected glimpse.
+    \item \textbf{Q-Network:} Combines the extracted features with an LSTM memory cell (256 units) to make navigation decisions.
+\end{enumerate}
+This attention mechanism mimics human visual processing, allowing the agent to focus high-resolution processing only on obstacles while ignoring open sky or distant background.
+
+\subsubsection{Quantitative Performance}
+Tested in Unity ML-Agents, AG-DQN achieved a \textbf{92\%} success rate in dynamic environments. Crucially, the inference time was reduced by \textbf{20\%} compared to processing the full high-resolution image, and the model size was significantly smaller than standard CNN-based DRQN methods.
+
+\subsubsection{Critique}
+The attention mechanism adds architectural complexity but yields significant efficiency gains. A potential downside is the "saccade latency"---if the agent looks at the wrong place, it might miss a sudden threat.
+
+\subsection{APPA-3D: Dynamic Reward Shaping [7]}
+\subsubsection{Overview}
+Wang et al. propose APPA-3D, focusing on the issue of reward shaping. Standard sparse rewards (only +1 at goal) are insufficient for complex 3D mazes.
+
+\subsubsection{Methodology}
+The core contribution is a \textbf{Dynamic Reward Function} based on a "Collision Safety Envelope."
+\begin{equation}
+R = \alpha (D_{safe} - D_{obs}) + \beta (D_{old} - D_{new})
+\end{equation}
+Instead of a static penalty, the collision penalty scales exponentially as the UAV breaches a safety radius $D_{safe}$. This provides a dense gradient of feedback, guiding the agent away from obstacles long before a collision occurs. The algorithm also uses an optimized exploration strategy where the $\epsilon$-greedy parameter decays based on the success rate of recent episodes rather than a fixed time schedule.
+
+\subsubsection{Quantitative Performance}
+The method reported a \textbf{95\%} success rate in "unknown complex environments" in a custom simulation, outperforming standard Q-Learning (88\%). The path smoothness was also improved due to the continuous feedback from the safety envelope.
+
+\subsubsection{Critique}
+Dynamic reward shaping is effective but requires careful tuning of the hyperparameters $\alpha$ and $\beta$. If $\alpha$ is too large, the agent becomes too timid; if too small, it crashes. The reliance on a custom simulator limits the verification of physics realism.
+
+\subsection{UAV Path Planning in Large-Scale Environments (DRQN) [14]}
+\subsubsection{Overview}
+Xue et al. tackle the problem of navigation in large-scale environments where the goal is far away, and obstacles may occlude the target or trap the agent (the "box canyon" problem).
+
+\subsubsection{Methodology}
+The authors employ a **Deep Recurrent Q-Network (DRQN)**. An LSTM layer is inserted between the convolutional feature extractor and the fully connected decision layers. This memory allows the agent to retain information about obstacles it has recently passed, helping it to avoid looping behavior.
+Additionally, an **Adaptive Experience Replay** mechanism is used. The sampling probability of a transition is weighted by the frequency of failure in that region of the state space, forcing the agent to practice difficult scenarios more often.
+
+\subsubsection{Quantitative Performance}
+In Unity simulations of a $1km \times 1km$ city, the success rate improved from 70\% (standard DQN) to \textbf{88\%} (DRQN with Adaptive Replay). The agent demonstrated the ability to escape local minima that trapped memory-less agents.
+
+\subsubsection{Critique}
+The use of LSTM effectively addresses partial observability. However, training on such large-scale maps is extremely time-consuming, and the discrete action space can lead to "jerky" flight paths over long distances.
+
+\subsection{Improved DQN with Self-Supervised Learning [9]}
+\subsubsection{Overview}
+Samma et al. propose a method to improve the sample efficiency of DRL. Learning visual features solely from the RL reward signal is slow and inefficient.
+
+\subsubsection{Methodology}
+The approach uses a **Two-Stage Learning** process:
+\begin{enumerate}
+    \item \textbf{Self-Supervised Pre-training:} The backbone CNN (ResNet-18) is trained on a pretext task---predicting the next video frame given the current frame and an action. This forces the network to learn the dynamics of the environment and the visual structure of obstacles without needing any manual labeling or reward signals.
+    \item \textbf{RL Fine-tuning:} The pre-trained weights are transferred to a Dueling DQN agent, which is then trained to maximize the navigation reward.
+\end{enumerate}
+
+\subsubsection{Quantitative Performance}
+Experiments in AirSim showed that the pre-training strategy reduced the number of RL interactions needed to reach a 90\% success rate by \textbf{40\%}. The final policy was also more robust to lighting changes, as the self-supervised task encouraged learning invariance.
+
+\subsubsection{Critique}
+This is a highly promising direction. Decoupling representation learning from policy learning addresses one of the biggest bottlenecks in DRL. The computational cost of the pre-training phase is offset by the massive reduction in online interaction time.
+
+
+
+\section{Policy-Based and Actor-Critic Approaches}
+
+Policy-based methods, particularly Actor-Critic architectures, dominate current research for UAV navigation in continuous spaces. By directly optimizing the policy $\pi(a|s)$, these methods can generate smooth, continuous control signals (e.g., specific thrust values) essential for agile flight.
+
+\subsection{Adaptive Multi-Agent PPO (MAPPO) [2]}
+\subsubsection{Overview}
+Fremond et al. tackle the complex problem of tactical conflict resolution in a shared airspace. With multiple UAVs operating simultaneously, the environment becomes non-stationary from the perspective of a single agent, as other agents are also learning and adapting.
+
+\subsubsection{Methodology}
+The authors employ a **Multi-Agent PPO (MAPPO)** framework with Centralized Training and Decentralized Execution (CTDE).
+\begin{enumerate}
+    \item \textbf{Centralized Training:} During training, the Critic network has access to the full state of all agents (positions, velocities, intents). This stabilizes the value function learning.
+    \item \textbf{Decentralized Execution:} During deployment, each Actor only receives its local observation (relative position of neighbors) and makes independent decisions.
+\end{enumerate}
+A **Recurrent Neural Network (GRU)** layer with 64 units is included in the policy network to handle the partial observability of other agents' intentions.
+
+\subsubsection{Reward Formulation}
+The reward function is designed to balance safety and efficiency:
+\begin{equation}
+R = w_c R_{conflict} + w_g R_{goal} + w_s R_{smooth}
+\end{equation}
+where $R_{conflict}$ imposes a severe penalty for loss of separation, $R_{goal}$ rewards progress towards the destination, and $R_{smooth}$ penalizes abrupt changes in heading or velocity to ensure flyable trajectories.
+
+\subsubsection{Quantitative Performance}
+In a custom Urban Airspace Simulator with up to 10 concurrent UAVs, the MAPPO approach resolved **98.5\%** of tactical conflicts. It reduced the number of unresolvable encounters by **45\%** compared to traditional geometrical avoidance rules (ORCA).
+
+\subsubsection{Critique}
+The centralized training assumption limits scalability to very large numbers of agents. Additionally, the communication overhead for sharing observations during training can be significant.
+
+\subsection{Guide Attention TD3 (GARTD3) [5]}
+\subsubsection{Overview}
+Yin et al. address the challenge of navigating in cluttered 3D environments using LiDAR data. Raw LiDAR scans are high-dimensional and noisy. The authors propose GARTD3, an enhancement of the Twin Delayed DDPG algorithm.
+
+\subsubsection{Methodology}
+The key innovation is the **Guide Attention Mechanism**. An attention layer weighs the importance of different laser beams based on their distance and angle relative to the UAV's velocity vector. This allows the network to focus on obstacles directly in the flight path while ignoring peripheral clutter.
+The Actor network also includes an **LSTM** layer (128 units) to process sequential laser scans, capturing the temporal dynamics of moving obstacles.
+
+\subsubsection{Reward Formulation}
+The reward function includes specific terms for angular velocity $r_{ang}$ and linear velocity $r_{vel}$ to ensure smooth flight:
+\begin{equation}
+r = r_{goal} + r_{col} + r_{ang} + r_{vel}
+\end{equation}
+
+\subsubsection{Quantitative Performance}
+Tested in Gazebo simulations of narrow corridors, GARTD3 showed a **15\%** improvement in average velocity and a **40\%** reduction in collision rate compared to standard TD3. The attention mechanism correctly identified critical obstacles even in noisy sensor data.
+
+\subsubsection{Critique}
+The addition of attention and LSTM layers increases the computational complexity of the forward pass, potentially affecting real-time performance on embedded hardware.
+
+\subsection{TD3 for Local Path Planning [11]}
+\subsubsection{Overview}
+Zhao et al. focus on local obstacle avoidance using the TD3 algorithm. The goal is to verify the stability and sample efficiency of TD3 compared to DDPG in a standard UAV navigation task.
+
+\subsubsection{Methodology}
+The agent uses a standard **TD3** architecture. The Actor and Critic networks are multi-layer perceptrons (MLP) with 3 fully connected layers (400, 300 units). The input consists of 24 laser range readings and the relative coordinates of the target.
+To address the overestimation bias of DDPG, TD3 employs **Clipped Double Q-Learning**, taking the minimum value from two critic networks.
+
+\subsubsection{Quantitative Performance}
+In Gazebo simulations with static cylindrical obstacles, the TD3 agent achieved a **93\%** success rate. In obstacle-free environments, it reached 92\%. The training converged significantly faster and with less variance than DDPG.
+
+\subsubsection{Critique}
+While effective for local planning, the study relies on a relatively simple sensor model (24 rays) which may not capture complex 3D structures. The lack of a global planner integration limits its applicability to long-range missions.
+
+\subsection{Safety-Aware PPO (SIGN) [10]}
+\subsubsection{Overview}
+Yan et al. propose SIGN, a safety-aware navigation system. Standard RL treats safety as a negative reward, which often leads to "reward hacking" or unsafe exploration. SIGN explicitly models safety constraints.
+
+\subsubsection{Methodology}
+The method uses **Constrained Policy Optimization** via a Lagrangian relaxation. The network outputs both a policy $\pi(a|s)$ and a safety value $V_{safe}(s)$, which estimates the probability of constraint violation in the future.
+The optimization objective maximizes the expected return subject to the constraint that the expected safety cost is below a threshold $d_{thresh}$.
+
+\subsubsection{Quantitative Performance}
+Trained in the photorealistic Gibson/Habitat simulator, SIGN reduced the collision rate to **<2\%** in cluttered indoor environments, significantly lower than unconstrained PPO (approx. 15\%). The success rate remained comparable (approx. 85\%).
+
+\subsubsection{Critique}
+This is a critical advancement for real-world deployment. However, constrained optimization is computationally more expensive and sensitive to hyperparameter tuning (Lagrange multipliers).
+
+\subsection{Real-World DDPG for USV Path Following [12]}
+\subsubsection{Overview}
+Woo et al. present a rare example of real-world validation, albeit for an Unmanned Surface Vehicle (USV). The challenges of continuous control and dynamics modeling are similar to UAVs.
+
+\subsubsection{Methodology}
+The authors use **DDPG** to learn a path-following controller. The state space includes cross-track error and heading error relative to the desired path. The action space controls the rudder angle and propeller speed.
+To prevent mechanical wear on the actuators, the reward function includes a penalty term for rapid changes in control inputs:
+\begin{equation}
+R = -(k_1 |error_{cross}| + k_2 |error_{heading}| + k_3 |action_{change}|)
+\end{equation}
+
+\subsubsection{Quantitative Performance}
+After training in a custom marine simulator, the policy was transferred to a physical 1.2m USV. In lake tests, the USV successfully followed a square path with an average cross-track error of **<0.5m**, demonstrating successful sim-to-real transfer.
+
+\subsubsection{Critique}
+The success of this study highlights the importance of incorporating actuator constraints into the reward function. The "sim-to-real" gap was bridged by accurate system identification of the vehicle dynamics.
+
+\subsection{Multi-Critic DDPG [13]}
+\subsubsection{Overview}
+Wu et al. extend the idea of double Q-learning to multiple critics. Standard DDPG can suffer from severe overestimation of Q-values, leading to suboptimal policies.
+
+\subsubsection{Methodology}
+The proposed **Multi-Critic DDPG** uses an Actor network and **three** independent Critic networks. During the policy update, the minimum Q-value among the three critics is used to calculate the target value. This further reduces the bias compared to the two critics in TD3.
+
+\subsubsection{Quantitative Performance}
+Experiments in a MATLAB-based simulation showed that the Multi-Critic approach converged **20\%** faster than standard DDPG and exhibited much lower variance in the learning curve.
+
+\subsubsection{Critique}
+While mathematically sound, maintaining three critic networks increases the memory footprint and training time. The marginal gain over two critics (TD3) may not justify the cost in resource-constrained scenarios.
+
+
+
+\section{Hybrid and Non-DRL Approaches}
+
+\subsection{RLPlanNav (Hierarchical DRL + Motion Planner) [4]}
+\subsubsection{Overview}
+Xue and Chen tackle the limitations of end-to-end DRL in long-horizon tasks. Pure RL often fails to find a path to a distant goal in complex environments due to sparse rewards and the difficulty of credit assignment. Classical planners, on the other hand, struggle with dynamic obstacles.
+
+\subsubsection{Methodology}
+RLPlanNav proposes a **Hierarchical Architecture**:
+\begin{enumerate}
+    \item \textbf{High-Level Planner (DRL):} A DQN agent selects intermediate sub-goals (waypoints) within a local window around the UAV. It uses a 2D occupancy grid as input.
+    \item \textbf{Low-Level Planner (Gradient-Based):} The EGO-Planner, a gradient-based trajectory optimizer, generates a smooth, collision-free trajectory from the current position to the sub-goal.
+\end{enumerate}
+This decomposition simplifies the learning problem for the RL agent (which only needs to select feasible sub-goals) and leverages the precision of the classical planner for local control.
+
+\subsubsection{Quantitative Performance}
+In Gazebo simulations with static obstacles, RLPlanNav achieved a **100\%** success rate in densities up to 0.5 obstacles/$m^2$, whereas the standalone EGO-Planner failed (stuck in local minima) in **15\%** of cases. The hybrid approach combines the global exploration capability of RL with the local optimality of gradient-based planning.
+
+\subsubsection{Critique}
+The reliance on a 2D occupancy grid simplifies the problem but limits applicability in full 3D environments. The communication overhead between the high-level and low-level planners can introduce latency.
+
+\subsection{Collaborative Path Planning to Avoid Sudden Threats [15]}
+\subsubsection{Overview}
+Chen et al. address the problem of multi-UAV coordination in the presence of sudden threats. This work highlights the responsiveness of heuristic methods compared to learning-based ones.
+
+\subsubsection{Methodology}
+The approach combines:
+\begin{itemize}
+    \item \textbf{V-Diagram:} A geometric method for initial path generation.
+    \item \textbf{Mission Assignment Model:} Allocates tasks to UAVs based on their capabilities and current positions.
+    \item \textbf{Cubic Spline Smoothing:} Ensures the generated paths are kinematically feasible.
+    \item \textbf{Crowding Mechanism:} A local re-planning strategy triggered when a threat is detected. It adjusts the path locally to maintain separation.
+\end{itemize}
+
+\subsubsection{Quantitative Performance}
+Simulations demonstrated that the swarm could re-plan within **50ms** upon detecting a sudden threat, maintaining safe separation distances. This reaction time is significantly faster than typical DRL inference times, which can range from 100ms to several seconds depending on the network size.
+
+\subsubsection{Critique}
+Heuristic methods are extremely fast and reliable for well-defined scenarios. However, they lack the adaptability of learning-based methods to handle unforeseen situations or complex interactions that were not explicitly programmed.
+
+\subsection{Multi-Level-Frontier Empowered Adaptive Path Planning [6]}
+\subsubsection{Overview}
+Duan et al. focus on efficient exploration of unknown environments. Building a map online is computationally expensive, especially at high resolution.
+
+\subsubsection{Methodology}
+The core contribution is a **Multi-Level Frontier Planner**. Instead of a uniform grid, the environment is represented using an **Octree**, which allows for variable resolution (high resolution near obstacles, low resolution in open space).
+The planner selects frontier points (boundaries between known and unknown space) to guide exploration. A **Historical State Record Tree (HSRT)** is used to backtrack if the agent gets stuck in a dead end.
+
+\subsubsection{Quantitative Performance}
+The multi-resolution approach reduced computational time by **60\%** compared to standard uniform-grid RRT* while maintaining similar path optimality. The memory footprint of the map was also significantly reduced.
+
+\subsubsection{Critique}
+This non-learning approach excels at systematic exploration but does not "learn" from experience. An RL agent could potentially learn to predict the location of frontiers or optimal paths more efficiently over time.
+
+\subsection{Cooperative Control of UAV Swarm via Information Measures [16]}
+\subsubsection{Overview}
+Cheng et al. propose a decentralized control strategy for UAV swarms based on Information Theory. The goal is to maximize the collective information gain (e.g., area covered) without centralized coordination.
+
+\subsubsection{Methodology}
+Each agent calculates the **Information Utility** of potential move directions. The control law maximizes local information gain while minimizing **Mutual Information** (congestion) between neighbors.
+This results in emergent cooperative behavior where agents spread out to cover the area efficiently.
+
+\subsubsection{Quantitative Performance}
+The swarm achieved **95\%** target coverage in search-and-rescue scenarios. The decentralized nature ensures scalability to large numbers of agents without a central bottleneck.
+
+\subsubsection{Critique}
+Information-theoretic approaches are theoretically elegant but can be computationally expensive to evaluate in real-time, especially as the number of neighbors increases. The assumption of perfect communication range is also a limitation.
+
+
+
+\section{Comparative Analysis}
+
+This section synthesizes the findings from the sixteen reviewed studies, highlighting key trends in algorithm selection, environmental complexity, and performance metrics.
+
+\subsection{Algorithm Selection Trends}
+The distribution of algorithms (Fig. \ref{fig:radar}) reveals a clear preference for **Policy-Based** and **Hybrid** methods in recent years. While early works (e.g., [1], [3]) relied on DQN variants due to their simplicity and stability, the limitations of discrete action spaces in agile flight control have driven a shift towards continuous control algorithms like TD3 [11] and PPO [2], [10]. Hybrid architectures [4], [9] that combine the strengths of classical planning (safety, optimality) with learning (adaptability) are emerging as the most robust solution for complex real-world deployment.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{comparison_assets/radar_chart.png}
+\caption{Radar Chart comparing the performance profiles of different algorithm classes. Hybrid methods offer a balance of safety and efficiency, while heuristic methods excel in compute efficiency.}
+\label{fig:radar}
+\end{figure}
+
+\subsection{Reward Function Design}
+The design of the reward function is arguably the most critical component of a successful DRL system. As shown in Fig. \ref{fig:rewards}, nearly all studies incorporate **Goal Reaching (+)** and **Collision Avoidance (-)** terms. However, advanced methods increasingly employ **Shaped Rewards** to guide exploration:
+\begin{itemize}
+    \item \textbf{Smoothness/Energy:} Papers [2], [5], [12] penalize rapid changes in control inputs ($|a_t - a_{t-1}|$) or high angular velocities. This is crucial for physical feasibility and energy efficiency.
+    \item \textbf{Safety Constraints:} Explicit safety formulations, such as the **Collision Safety Envelope** in [7] or the **Lagrangian Constraint** in [10], are superior to simple penalty terms, which often lead to "timid" or "suicidal" policies depending on the penalty magnitude.
+    \item \textbf{Field of View (FOV):} The inclusion of FOV constraints [14] ensures that the UAV keeps the target in sight, addressing the partial observability problem.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{comparison_assets/reward_components.png}
+\caption{Frequency of Reward Function Components. Goal and Collision rewards are universal, but only a subset of papers incorporate smoothness or energy constraints.}
+\label{fig:rewards}
+\end{figure}
+
+\subsection{Simulation vs. Reality}
+A glaring gap in the literature is the reliance on simulation. 15 out of 16 studies were validated exclusively in simulators (Gazebo, AirSim, Unity). While high-fidelity simulators are valuable, they cannot fully replicate the sensor noise, aerodynamic disturbances, and communication latencies of the real world. The notable exception is [12], which successfully transferred a DDPG policy to a physical USV, highlighting the importance of **Domain Randomization** and **System Identification**.
+
+\subsection{Detailed Comparison Tables}
+Tables \ref{tab:comp_part1} and \ref{tab:comp_part2} provide a granular comparison of the methodologies and results.
+
+\begin{table*}[htbp]
+\caption{Comprehensive Comparison of UAV Navigation Algorithms (Part 1: Methodology \& Environment)}
+\label{tab:comp_part1}
+\begin{center}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+\textbf{Study} & \textbf{Algorithm Class} & \textbf{Core Algorithm} & \textbf{State Space} & \textbf{Action Space} & \textbf{Simulator} & \textbf{Real-World?} \\
+\hline
+[1] Wang et al. & Value-Based & FRDDM-DQN & RGB + Pos & Discrete & Custom (OpenGL) & No \\
+\hline
+[2] Fremond et al. & Policy-Based & MAPPO (RNN) & Relative Pos & Continuous & Custom (Urban) & No \\
+\hline
+[3] Carvalho et al. & Value-Based & Dueling DQN & Depth Map & Discrete & AirSim & No \\
+\hline
+[4] Xue \& Chen & Hybrid (Hierarchical) & DQN + Planner & Occupancy Grid & Discrete (High-level) & Gazebo & No \\
+\hline
+[5] Yin et al. & Policy-Based & GARTD3 (Attention) & Laser Range & Continuous & Gazebo & No \\
+\hline
+[6] Duan et al. & Non-DRL & Frontier Planner & Voxel Map & Discrete (Grid) & Custom & No \\
+\hline
+[7] Wang et al. & Value-Based & DQN (Dynamic Reward) & Sensor Data & Discrete & Custom & No \\
+\hline
+[8] AlMahamid et al. & Value-Based & Agile DQN (RNN) & RGB (Glimpses) & Discrete & Unity ML-Agents & No \\
+\hline
+[9] Samma et al. & Hybrid (SSL+RL) & Improved DQN & RGB & Discrete & AirSim & No \\
+\hline
+[10] Yan et al. & Policy-Based (Safe) & PPO-Lagrangian & RGB-D & Continuous & Habitat & No \\
+\hline
+[11] Zhao et al. & Policy-Based & TD3 & Laser Range & Continuous & Gazebo & No \\
+\hline
+[12] Woo et al. & Policy-Based & DDPG & Error States & Continuous & Custom + Real & \textbf{Yes} \\
+\hline
+[13] Wu et al. & Policy-Based & Multi-Critic DDPG & State Vector & Continuous & MATLAB & No \\
+\hline
+[14] Xie et al. & Value-Based & DRQN & POMDP State & Discrete & Unity & No \\
+\hline
+[15] Chen et al. & Non-DRL & V-Diagram & Threat Info & Continuous & Custom & No \\
+\hline
+[16] Cheng et al. & Non-DRL & Info Theoretic & Local Info & Discrete & Custom & No \\
+\hline
+\end{tabular}
+}
+\end{center}
+\end{table*}
+
+\begin{table*}[htbp]
+\caption{Comprehensive Comparison of UAV Navigation Algorithms (Part 2: Performance \& Details)}
+\label{tab:comp_part2}
+\begin{center}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+\textbf{Study} & \textbf{Reward Function Components} & \textbf{Network / Method Details} & \textbf{Learning Rate} & \textbf{Key Metric} & \textbf{Result} \\
+\hline
+[1] Wang et al. & Goal(+), Collision(-), Step(-) & Faster R-CNN + 3-layer DQN & 0.00025 & Success Rate & 94\% \\
+\hline
+[2] Fremond et al. & Conflict(-), Goal(+), Smooth(-) & GRU-based Policy (64 units) & 0.0005 (Est) & Conflict Resolution & 98.5\% \\
+\hline
+[3] Carvalho et al. & Goal(+), Potential(+), Energy(-) & Dueling DQN (Conv Layers) & Dynamic & Success Rate & 91\% (Dense) \\
+\hline
+[4] Xue \& Chen & Progress(+), Safety(-), Valid(+) & Hierarchical (DQN + Gradient) & 0.0001 & Success Rate & 100\% (Static) \\
+\hline
+[5] Yin et al. & Goal, Col, Angular, Velocity & LSTM Actor + Attention & 0.001 & Collision Rate & -40\% vs TD3 \\
+\hline
+[6] Duan et al. & N/A (Cost Function) & Multi-Res Octree & N/A & Compute Time & -60\% \\
+\hline
+[7] Wang et al. & Safety Envelope, Dist Change & DQN + Action Prob & Unknown & Success Rate & 95\% \\
+\hline
+[8] AlMahamid et al. & Goal, Col, Time, Glimpse(-) & Glimpse Net + LSTM (256) & 0.0001 & Success Rate & 92\% \\
+\hline
+[9] Samma et al. & Goal, Col, Shaping & ResNet-18 + Dueling DQN & 0.0001 & Training Steps & -40\% steps \\
+\hline
+[10] Yan et al. & Task(+), Safety Cost & PPO-Lagrangian & 0.0003 & Collision Rate & <2\% \\
+\hline
+[11] Zhao et al. & Dist, Heading, Obstacle(-) & TD3 (400, 300 units) & 0.001 & Success Rate & 93\% \\
+\hline
+[12] Woo et al. & Cross-track, Heading, Action & DDPG (400, 300 units) & 0.0001 & Tracking Error & <0.5m \\
+\hline
+[13] Wu et al. & Distance Reward & Multi-Critic (3 Critics) & Unknown & Convergence & +20\% Speed \\
+\hline
+[14] Xie et al. & FOV Reward, Nav Reward & DRQN (LSTM) & 0.00025 & Success Rate & 88\% \\
+\hline
+[15] Chen et al. & N/A (Heuristic) & Cubic Spline + Crowding & N/A & Reaction Time & <50ms \\
+\hline
+[16] Cheng et al. & Information Gain & Info Utility Maximization & N/A & Coverage & 95\% \\
+\hline
+\end{tabular}
+}
+\end{center}
+\end{table*}
+
+
+
+\section{Critical Challenges and Future Directions}
+
+Despite the remarkable progress in DRL for UAV navigation, several critical challenges prevent widespread adoption in safety-critical applications.
+
+\subsection{The Sim-to-Real Gap}
+The discrepancy between simulation and reality remains the "elephant in the room." Simulators provide noise-free state estimates, perfect communication, and simplified physics.
+\begin{itemize}
+    \item \textbf{Sensor Noise:} Real sensors (cameras, IMUs, LiDAR) suffer from noise, bias, and drift. DRL policies trained on clean data often fail catastrophically when exposed to real sensor outputs.
+    \item \textbf{Dynamics Mismatch:} Aerodynamic effects like ground effect, wind gusts, and prop-wash are difficult to model accurately.
+    \item \textbf{Solution:} Future work must embrace \textbf{Domain Randomization} (varying physical parameters during training), \textbf{System Identification} (learning the dynamics model online), and \textbf{Meta-Learning} (learning to adapt quickly to new dynamics).
+\end{itemize}
+
+\subsection{Safety Guarantees}
+DRL is inherently an optimization process that maximizes expected return. It does not provide hard guarantees on safety. In a trial-and-error learning process, the agent *must* crash to learn that crashing is bad.
+\begin{itemize}
+    \item \textbf{Constrained RL:} Approaches like SIGN [10] (PPO-Lagrangian) and CPO (Constrained Policy Optimization) are promising but computationally expensive.
+    \item \textbf{Safe Exploration:} Techniques that use a "safety layer" or a backup controller (like the "Collision Safety Envelope" in [7]) to override unsafe actions during training are essential.
+\end{itemize}
+
+\subsection{Computational Efficiency on Edge Devices}
+Most state-of-the-art DRL models (e.g., ResNet-based visual navigation [9]) are computationally intensive. Running these models on embedded hardware (e.g., NVIDIA Jetson, Raspberry Pi) with strict power budgets is challenging.
+\begin{itemize}
+    \item \textbf{Model Compression:} Techniques like quantization, pruning, and knowledge distillation can reduce model size.
+    \item \textbf{Attention Mechanisms:} As demonstrated by AG-DQN [8], processing only relevant parts of the input can significantly reduce inference time.
+\end{itemize}
+
+\subsection{Sample Efficiency}
+DRL is notoriously sample-inefficient, often requiring millions of interaction steps to learn simple tasks. This makes training on real robots infeasible.
+\begin{itemize}
+    \item \textbf{Self-Supervised Learning:} Pre-training visual encoders on pretext tasks (e.g., [9]) is a powerful way to learn representations without reward signals.
+    \item \textbf{Model-Based RL:} Learning a world model and planning within it (e.g., Dreamer, MuZero) can improve sample efficiency by orders of magnitude.
+\end{itemize}
+
+\section{Conclusion}
+This extensive review has dissected sixteen cutting-edge studies on UAV navigation, ranging from classical Value-Based DRL to advanced Policy-Based and Hybrid architectures. The analysis reveals a clear trajectory towards continuous control (TD3, PPO), memory-augmented networks (LSTM/GRU) for partial observability, and attention mechanisms for efficient perception. While simulation results are impressive, achieving success rates above 90\% in complex environments, the transition to the real world remains a significant hurdle. The future of autonomous UAV navigation lies in bridging this gap through robust sim-to-real transfer, ensuring safety through constrained optimization, and improving efficiency through hybrid architectures that leverage the best of both learning and control theory.
+
+
+
+\section{Taxonomy of DRL Approaches in UAVs}
+To better understand the landscape of DRL in UAV navigation, we categorize the reviewed works based on three primary dimensions:
+
+\subsection{Action Space Discretization}
+\begin{itemize}
+    \item \textbf{Discrete Action Space:} Methods like DQN [1], [3], [7], [8], [9], [14] discretize the control outputs (e.g., "turn left 10 degrees", "accelerate 1m/s"). This simplifies the learning problem but can result in jerky flight paths.
+    \item \textbf{Continuous Action Space:} Methods like DDPG [12], [13], TD3 [5], [11], and PPO [2], [10] output continuous control signals (e.g., thrust percentage). This enables smoother, more natural flight but is harder to train due to the infinite action space.
+\end{itemize}
+
+\subsection{State Representation}
+\begin{itemize}
+    \item \textbf{Low-Dimensional Features:} Some approaches [2], [12], [15], [16] use processed features like relative positions or error terms. These require less computation but depend on external state estimation.
+    \item \textbf{High-Dimensional Sensory Inputs:} Most modern approaches [1], [3], [4], [5], [8], [9], [10], [11], [14] learn directly from raw sensor data (Images, Depth Maps, LiDAR). This is more robust to unstructured environments but requires deep CNNs or Attention mechanisms.
+\end{itemize}
+
+\subsection{Learning Paradigm}
+\begin{itemize}
+    \item \textbf{End-to-End RL:} The majority of works attempt to map pixels to actions directly.
+    \item \textbf{Hierarchical RL:} Works like [4] decompose the problem into high-level planning and low-level control.
+    \item \textbf{Auxiliary Learning:} Works like [9] use self-supervised tasks to aid representation learning.
+\end{itemize}
 
 \begin{thebibliography}{00}
 \bibitem{b1} Wang et al., "Deep-reinforcement-learning-based UAV autonomous navigation..."
